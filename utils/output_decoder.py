@@ -4,7 +4,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 class OutputDecoder:
-    def __init__(self, config: Config, score_threshold=0.5, iou_threshold=0.5):
+    def __init__(self, config: Config, score_threshold=0.25, iou_threshold=0.5):
         self.config = config
         self.num_classes = config.num_classes
         self.input_size = config.input_size

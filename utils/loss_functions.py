@@ -5,7 +5,7 @@ import tensorflow as tf
 from tensorflow import convert_to_tensor
 
 class CenterNetLosses:
-    def __init__(self, config: Config, alpha=2., beta=4.,  offset_loss_weight=1.0, size_loss_weight=0.1):
+    def __init__(self, config: Config, alpha=2., beta=4.,  offset_loss_weight=1.0, size_loss_weight=5.0):
         self.alpha = alpha
         self.beta = beta
         self.offset_weight = offset_loss_weight
@@ -28,7 +28,7 @@ class CenterNetLosses:
                 K.abs(y_true[..., self.num_classes+2]-y_pred[..., self.num_classes+2] * mask)
                 + K.abs(y_true[..., self.num_classes+3]-y_pred[..., self.num_classes+3] * mask)
             )
-            return (sizeloss)/N
+            return (self.size_weight*sizeloss)/N
         return _size_loss
 
     def offset_loss(self):
@@ -39,7 +39,7 @@ class CenterNetLosses:
                 K.abs(y_true[..., self.num_classes]-y_pred[..., self.num_classes] * mask)
                 + K.abs(y_true[..., self.num_classes+1]-y_pred[..., self.num_classes+1] * mask)
             )
-            return (offsetloss)/N
+            return (self.offset_weight*offsetloss)/N
         return _offset_loss
 
     def heatmap_loss(self):

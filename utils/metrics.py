@@ -111,7 +111,7 @@ def calculate_precision(pred_boxes, true_boxes, threshold=0.5):
 
 def calculate_map(config: Config, model, valid_generator, threshold=0.5):
     precisions = []
-    output_decoder = OutputDecoder(config, score_threshold=threshold)
+    output_decoder = OutputDecoder(config, score_threshold=0.25, iou_threshold=threshold)
 
     for count, (X, y_true) in enumerate(valid_generator):
         batch_ground_truths = [output_decoder.decode_y_true(y) for y in y_true]
