@@ -136,7 +136,7 @@ class DataGenerator(Sequence):
         #PROCESS LABELS
         # This output for y-true, stacks some more layers for the exact center point coord for each class
         output_layer = np.zeros((output_height, output_width, (self.num_output_layers + self.num_classes))) 
-        print(self.num_output_layers + self.num_classes)
+        # print(self.num_output_layers + self.num_classes)
         
         for box in boxes:
             x1, y1, x2, y2, category = box
