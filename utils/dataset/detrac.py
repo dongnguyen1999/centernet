@@ -185,12 +185,11 @@ class DataGenerator(Sequence):
 
             # load source image
             img = cv2.imread(os.path.join(self.train_path, filename))
+            print(os.path.join(self.train_path, filename))
 
             with open(os.path.join(self.mask_path, f'{subfolder}_mask.npy'), 'rb') as f:
                 mask = np.load(f).astype(np.float)
                 mask = mask.reshape((mask.shape[0], mask.shape[1], 1))
-                print(mask)
-                print(img)
                 img = np.multiply(img, mask)
 
             im_h, im_w = img.shape[:2]
