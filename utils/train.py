@@ -1,5 +1,6 @@
 from utils.config import Config
-from utils.dataset.vn_vehicle import DataGenerator
+# from utils.dataset.vn_vehicle import DataGenerator
+from utils.dataset.detrac import DataGenerator
 from models.centernet import create_model
 from tensorflow.keras.losses import binary_crossentropy
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, ReduceLROnPlateau,LearningRateScheduler
