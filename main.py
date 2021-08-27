@@ -70,9 +70,9 @@ config = Config(
 # train_df, test_df = load_data(config)
 train_df, test_df, valid_df, le = load_data(config)
 
-x1, y1 = test_dataset(train_df, config)
+# x1, y1 = test_dataset(train_df, config)
 # x2, y2 = test_dataset(test_df, config, mode='test')
-plt.show()
+# plt.show()
 
 
 # centernet_loss, heatmap_loss, offset_loss, size_loss = centernet_losses(config)
@@ -86,10 +86,10 @@ plt.show()
 # decoder.visualize(score_boxes, x1, le=le, display=True)
 # plt.show()
 
-# model = create_model(config, num_stacks=1)
-# model.summary()
-# print('Number os layers: %d' % len(model.layers))
-# train(model, train_df, valid_df, config)
+model = create_model(config, num_stacks=1)
+model.summary()
+print('Number os layers: %d' % len(model.layers))
+train(model, train_df, valid_df, config)
 
 # print(pred)
 # print(pred.shape)
