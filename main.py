@@ -86,10 +86,12 @@ train_df, test_df, valid_df, le = load_data(config)
 # decoder.visualize(score_boxes, x1, le=le, display=True)
 # plt.show()
 
+train_data = DataGenerator(train_df, config)
+valid_data = DataGenerator(valid_df, config, mode='valid')
 model = create_model(config, num_stacks=1)
 model.summary()
 print('Number os layers: %d' % len(model.layers))
-train(model, train_df, valid_df, config)
+train(model, train_data, valid_data, config)
 
 # print(pred)
 # print(pred.shape)

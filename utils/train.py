@@ -1,6 +1,4 @@
 from utils.config import Config
-# from utils.dataset.vn_vehicle import DataGenerator
-from utils.dataset.detrac import DataGenerator
 from models.centernet import create_model
 from tensorflow.keras.losses import binary_crossentropy
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, ReduceLROnPlateau,LearningRateScheduler
@@ -13,10 +11,7 @@ import numpy as np
 
 #####TRAIN##########
     
-def train(model, train_df, valid_df, config: Config):
-
-    mygen = DataGenerator(train_df, config)
-    myval = DataGenerator(valid_df, config, mode='valid')
+def train(model, train_data, valid_data, config: Config):
 
     if config.weights_path != None:
         weights_path = config.weights_path
@@ -46,7 +41,7 @@ def train(model, train_df, valid_df, config: Config):
 
     best_map_save_path = os.path.join(config.checkpoint_path, 'best_map')
     if os.path.exists(best_map_save_path) == False: os.makedirs(best_map_save_path)
-    save_best_map = SaveBestmAP(config, best_map_save_path, myval)
+    save_best_map = SaveBestmAP(config, best_map_save_path, valid_data)
 
     
     # define logger to log loss and val_loss every epoch
@@ -61,11 +56,11 @@ def train(model, train_df, valid_df, config: Config):
     model.compile(loss=centernet_loss, optimizer=Adam(learning_rate=config.lr), metrics=[heatmap_loss,size_loss,offset_loss])
 
     hist = model.fit(
-        mygen,
-        steps_per_epoch = len(train_df[config.image_id].unique()) // config.batch_size,
+        train_data,
+        steps_per_epoch = len(train_data),
         epochs = config.epochs, 
-        validation_data=myval,
-        validation_steps = len(valid_df[config.image_id].unique()) // config.batch_size,
+        validation_data=valid_data,
+        validation_steps = len(valid_data),
         callbacks = [early_stopping, reduce_lr, model_frequently_checkpoint, model_bestloss_checkpoint, save_best_map, csv_logger],
         shuffle = True,
         verbose = 1,
