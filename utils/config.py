@@ -12,8 +12,8 @@ class Config:
         self.epochs = epochs
         self.batch_size = batch_size
         self.num_classes = num_classes
-        self.train_path = os.path.join(data_base, train_path) if data_base != None else train_path
-        self.test_path = os.path.join(data_base, test_path) if data_base != None else test_path
+        self.train_path = os.path.join(data_base, train_path) if data_base != None and train_path != None else train_path
+        self.test_path = os.path.join(data_base, test_path) if data_base != None and test_path != None else test_path
         self.checkpoint_path = os.path.join(data_base, checkpoint_path) if data_base != None else checkpoint_path
         self.annotation_filename = annotation_filename
         self.valid_path = os.path.join(data_base, valid_path) if data_base != None and valid_path != None else valid_path

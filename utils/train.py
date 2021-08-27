@@ -4,6 +4,7 @@ from models.centernet import create_model
 from tensorflow.keras.losses import binary_crossentropy
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, ReduceLROnPlateau,LearningRateScheduler
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD
+from tensorflow.keras.callbacks import CSVLogger
 from utils.loss_functions import CenterNetLosses
 from utils.callbacks import SaveBestmAP
 import os
@@ -15,6 +16,15 @@ def train(model, train_df, valid_df, config: Config):
 
     mygen = DataGenerator(train_df, config)
     myval = DataGenerator(valid_df, config, mode='valid')
+
+    if config.weights_path != None:
+        weights_path = config.weights_path
+        if not (weights_path.startswith('/') or weights_path.startswith('C:')):
+            weights_path = os.path.join(config.checkpoint_path, weights_path)
+        # load weights
+        print('Loading weights...')
+        model.load_weights(weights_path, by_name=True)
+        print('Done!')
 
     # EarlyStopping
     early_stopping = EarlyStopping(monitor = 'val_loss', min_delta=0, patience = 60, verbose = 1)
@@ -37,10 +47,14 @@ def train(model, train_df, valid_df, config: Config):
     if os.path.exists(best_map_save_path) == False: os.makedirs(best_map_save_path)
     save_best_map = SaveBestmAP(config, best_map_save_path, myval)
 
+    
+    # define logger to log loss and val_loss every epoch
+    csv_logger = CSVLogger(os.path.join(config.checkpoint_path, "history_log.csv"), append=True)
 
     # reduce learning rate
     reduce_lr = ReduceLROnPlateau(monitor = 'val_loss', factor=0.25, patience=2, min_lr=1e-5, verbose=1)
 
+    # compile loss functions
     centernet_losses = CenterNetLosses(config)
     centernet_loss, heatmap_loss, offset_loss, size_loss = centernet_losses.all_losses()
     model.compile(loss=centernet_loss, optimizer=Adam(learning_rate=config.lr), metrics=[heatmap_loss,size_loss,offset_loss])
@@ -51,10 +65,7 @@ def train(model, train_df, valid_df, config: Config):
         epochs = config.epochs, 
         validation_data=myval,
         validation_steps = len(valid_df[config.image_id].unique()) // config.batch_size,
-        callbacks = [early_stopping, reduce_lr, model_frequently_checkpoint, model_bestloss_checkpoint, save_best_map],
+        callbacks = [early_stopping, reduce_lr, model_frequently_checkpoint, model_bestloss_checkpoint, save_best_map, csv_logger],
         shuffle = True,
         verbose = 1,
     )
-
-    print(hist.history.keys())
-    np.save(os.path.join(config.checkpoint_path, 'history.np') , hist.history)
