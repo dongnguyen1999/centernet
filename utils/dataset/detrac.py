@@ -188,6 +188,7 @@ class DataGenerator(Sequence):
 
             with open(os.path.join(self.mask_path, f'{subfolder}_mask.npy'), 'rb') as f:
                 mask = np.load(f).astype(np.float)
+                print(mask.shape)
                 mask = mask.reshape((mask.shape[0], mask.shape[1], 1))
                 img = np.multiply(img, mask)
 
