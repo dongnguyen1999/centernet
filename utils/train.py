@@ -29,10 +29,10 @@ def train(model, train_data, valid_data, config: Config):
 
     if os.path.exists(config.checkpoint_path) == False: os.makedirs(config.checkpoint_path)
 
-    frequently_save_path = os.path.join(config.checkpoint_path, 'every_3_epoch')
+    frequently_save_path = os.path.join(config.checkpoint_path, 'every_epoch')
     if os.path.exists(frequently_save_path) == False: os.makedirs(frequently_save_path)
     model_frequently_checkpoint = ModelCheckpoint(os.path.join(frequently_save_path, "{epoch:02d}-{val_loss:.3f}.hdf5"), monitor = 'val_loss', verbose = 1,
-                                         save_best_only = False, save_weights_only = True, period = 3)
+                                         save_best_only = False, save_weights_only = True, period = 1)
 
     best_valloss_save_path = os.path.join(config.checkpoint_path, 'best_val_loss')
     if os.path.exists(best_valloss_save_path) == False: os.makedirs(best_valloss_save_path)
