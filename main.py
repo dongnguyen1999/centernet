@@ -59,6 +59,7 @@ config = Config(
     checkpoint_path='models\hourglass_centernet_1stack_512_detrac\\v1',
     annotation_filename='_annotations.csv',
     data_base='C:\\vehicle-data',
+    logging_base='D:\\',
     epochs=50,
     batch_size=1,
     image_id='filename',

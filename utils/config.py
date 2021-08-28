@@ -6,7 +6,7 @@ from pathlib import Path
 class Config:
     def __init__(self, 
         num_classes, train_path, test_path, checkpoint_path, annotation_filename, 
-        name='keras_model', data_base=None, valid_path=None, image_id='image_id', weights_path=None,
+        name='keras_model', data_base=None, logging_base=None, valid_path=None, image_id='image_id', weights_path=None,
         epochs=1, batch_size=1, lr=1e-4, seed = 2610, test_size=0.2, val_size=0.2, input_size=512) -> None:
         self.name = name
         self.epochs = epochs
@@ -14,7 +14,6 @@ class Config:
         self.num_classes = num_classes
         self.train_path = os.path.join(data_base, train_path) if data_base != None and train_path != None else train_path
         self.test_path = os.path.join(data_base, test_path) if data_base != None and test_path != None else test_path
-        self.checkpoint_path = os.path.join(data_base, checkpoint_path) if data_base != None else checkpoint_path
         self.annotation_filename = annotation_filename
         self.valid_path = os.path.join(data_base, valid_path) if data_base != None and valid_path != None else valid_path
         self.lr = lr
@@ -26,6 +25,8 @@ class Config:
         self.output_size = self.input_size // 4 # Center output size with stride 4 
         self.image_id = image_id
         self.weights_path = weights_path
+        self.logging_base = data_base if logging_base == None else logging_base
+        self.checkpoint_path = os.path.join(self.logging_base, checkpoint_path) if self.logging_base != None else checkpoint_path
     
     def random_system(self):
         random.seed(self.seed)
