@@ -104,7 +104,7 @@ class DataGenerator(Sequence):
         self.valid_path = config.test_path if mode == 'test' else config.valid_path
         self.mask_path = os.path.join(config.train_path, 'mask')
         if self.valid_path == None:
-            self.valid_path = config.train_path
+            self.valid_path = self.train_path
         self.batch_size = config.batch_size
         self.input_size = config.input_size
         self.output_size = config.output_size
