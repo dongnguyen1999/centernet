@@ -46,9 +46,12 @@ def preprocessing(config: Config, limit=None):
                 ix1, iy1, ix2, iy2 = ignore_box
                 dx = min(x2, ix2) - max(x1, ix1)
                 dy = min(y2, iy2) - max(y1, iy1)
+                overlap = dx * dy
+                area = (x2 - x1) * (y2 - y1)
                 if (dx > 0) and (dy > 0):
-                    is_error = True
-                    break
+                    if (overlap / area) >= 0.3:
+                        is_error = True
+                        break
             if not is_error:
                 img_ids.append(image_id)
                 x1s.append(x1)
