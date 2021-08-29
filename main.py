@@ -4,8 +4,8 @@ from utils.metrics import calculate_map
 from numpy.lib.shape_base import expand_dims
 from utils.config import Config
 # from utils.dataset.wheat import load_data, test_dataset
-# from utils.dataset.vn_vehicle import DataGenerator, load_data, test_dataset
-from utils.dataset.detrac import DataGenerator, load_data, test_dataset, preprocessing
+from utils.dataset.vn_vehicle import DataGenerator, load_data, test_dataset, preprocessing
+# from utils.dataset.detrac import DataGenerator, load_data, test_dataset, preprocessing
 import matplotlib.pyplot as plt
 from utils.train import train
 from utils.output_decoder import OutputDecoder
@@ -36,40 +36,40 @@ from utils.output_decoder import OutputDecoder
 #     # weights_path='/kaggle/working/centernet.hdf5',
 # )
 
-# config = Config(
-#     name='hourglass_centernet_vehicle_v1',
-#     num_classes=3, 
-#     train_path='video1_all\\train', 
-#     valid_path='video1_all\\valid',
-#     test_path='video1_all\\test',
-#     checkpoint_path='models\hourglass_centernet_1stack_512\\rf_v1',
-#     annotation_filename='_annotations_custom_v2.txt',
-#     data_base='C:\\vehicle-data',
-#     epochs=50,
-#     batch_size=1,
-#     image_id='filename',
-#     weights_path='best_map\\02-0.815.hdf5',
-# )
-
 config = Config(
     name='hourglass_centernet_vehicle_v1',
-    num_classes=13, 
-    train_path='detrac',
-    test_path=None,
-    checkpoint_path='models\hourglass_centernet_1stack_512_detrac\\v1',
-    annotation_filename='_annotations.csv',
+    num_classes=3, 
+    train_path='video1_all\\train', 
+    valid_path='video1_all\\valid',
+    test_path='video1_all\\test',
+    checkpoint_path='models\hourglass_centernet_1stack_512\\rf_v1',
+    annotation_filename='_annotations_custom_v2.txt',
     data_base='C:\\vehicle-data',
-    logging_base='D:\\',
     epochs=50,
     batch_size=1,
     image_id='filename',
-    # weights_path='best_map\\02-0.815.hdf5',
+    weights_path='best_map\\02-0.815.hdf5',
 )
 
-# preprocessing(config)
+# config = Config(
+#     name='hourglass_centernet_vehicle_v1',
+#     num_classes=13, 
+#     train_path='detrac',
+#     test_path=None,
+#     checkpoint_path='models\hourglass_centernet_1stack_512_detrac\\v1',
+#     annotation_filename='_annotations.csv',
+#     data_base='C:\\vehicle-data',
+#     logging_base='D:\\',
+#     epochs=50,
+#     batch_size=1,
+#     image_id='filename',
+#     # weights_path='best_map\\02-0.815.hdf5',
+# )
+
+preprocessing(config)
 
 # train_df, test_df = load_data(config)
-train_df, test_df, valid_df, le = load_data(config)
+# train_df, test_df, valid_df, le = load_data(config)
 
 # x1, y1 = test_dataset(train_df, config)
 # x2, y2 = test_dataset(test_df, config, mode='test')
@@ -87,12 +87,12 @@ train_df, test_df, valid_df, le = load_data(config)
 # decoder.visualize(score_boxes, x1, le=le, display=True)
 # plt.show()
 
-train_data = DataGenerator(train_df, config)
-valid_data = DataGenerator(valid_df, config, mode='valid')
-model = create_model(config, num_stacks=1)
-model.summary()
-print('Number os layers: %d' % len(model.layers))
-train(model, train_data, valid_data, config)
+# train_data = DataGenerator(train_df, config)
+# valid_data = DataGenerator(valid_df, config, mode='valid')
+# model = create_model(config, num_stacks=1)
+# model.summary()
+# print('Number os layers: %d' % len(model.layers))
+# train(model, train_data, valid_data, config)
 
 # print(pred)
 # print(pred.shape)

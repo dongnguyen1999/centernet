@@ -9,6 +9,60 @@ import cv2
 import matplotlib.pyplot as plt
 import os
 from sklearn.preprocessing import LabelEncoder
+from glob import glob
+import math
+
+def preprocessing(config: Config, limit=None):
+    output_path = os.path.join(config.data_base, 'masked_train')
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+    names=['filename', 'x1', 'y1', 'x2', 'y2', 'label']
+    train_df = pd.read_csv(os.path.join(config.train_path, config.annotation_filename), names=names)
+    mask_df = pd.read_csv(os.path.join(config.train_path, 'mask.csv'), names=['x1', 'y1', 'x2', 'y2'])
+    image_ids = train_df['filename'].unique()
+    img_ids, x1s, y1s, x2s, y2s, labels = [], [], [], [], [], []
+    for image_id in image_ids:
+        filename = os.path.basename(image_id)
+        # load source image
+        img = cv2.imread(os.path.join(config.train_path, filename))
+        im_h, im_w = img.shape[:2]
+
+        mask = np.ones((im_h, im_w))
+        mask_coords = mask_df[['x1', 'y1', 'x2', 'y2']].values
+        for ignore_box in mask_coords:
+            x1, y1, x2, y2 = ignore_box
+            mask[y1:y2, x1:x2] = 0
+        
+        mask = mask.reshape((mask.shape[0], mask.shape[1], 1))
+        img = np.multiply(img, mask)
+        cv2.imwrite(os.path.join(output_path, filename), img)
+
+        boxes = train_df[train_df.filename == image_id]
+        boxes = boxes[['x1', 'y1', 'x2', 'y2', 'label']].values
+        for box in boxes:
+            x1, y1, x2, y2, label = box
+            is_error = False
+            for ignore_box in mask_coords:
+                ix1, iy1, ix2, iy2 = ignore_box
+                dx = min(x2, ix2) - max(x1, ix1)
+                dy = min(y2, iy2) - max(y1, iy1)
+                if (dx > 0) and (dy > 0):
+                    is_error = True
+                    break
+            if not is_error:
+                img_ids.append(image_id)
+                x1s.append(x1)
+                y1s.append(y1)
+                x2s.append(x2)
+                y2s.append(y2)
+                labels.append(label)
+    
+    assert len(img_ids) == len(x1s) and len(x1s) == len(y1s) and len(y1s) == len(x2s) and len(x2s) == len(y2s) and len(y2s) == len(labels)
+    df = pd.DataFrame(data={
+        'filename': img_ids, 'x1': x1s, 'y1': y1s, 'x2': x2s, 'y2': y2s, 'label': labels
+    })
+    df.to_csv(os.path.join(output_path, '_annotations.csv'), index=False, header=False)
+    return df
 
 
 def load_data(config: Config):    
