@@ -39,7 +39,7 @@ from utils.output_decoder import OutputDecoder
 config = Config(
     name='hourglass_centernet_vehicle_v1',
     num_classes=3, 
-    train_path='video1_all\\train', 
+    train_path='video1_all\\valid', 
     valid_path='video1_all\\valid',
     test_path='video1_all\\test',
     checkpoint_path='models\hourglass_centernet_1stack_512\\rf_v1',

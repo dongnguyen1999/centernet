@@ -13,7 +13,7 @@ from glob import glob
 import math
 
 def preprocessing(config: Config, limit=None):
-    output_path = os.path.join(config.data_base, 'masked_train')
+    output_path = os.path.join(config.data_base, 'masked_valid')
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     names=['filename', 'x1', 'y1', 'x2', 'y2', 'label']

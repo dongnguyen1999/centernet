@@ -145,6 +145,6 @@ def create_output(out_dim, rf1, hgid):
     num_channels = out_dim
     _x = Conv2D(256, 3, use_bias=True, padding='same', name='output.%d.0.conv' % hgid)(rf1)
     _x = Activation('relu', name='output.%d.0.relu' % hgid)(_x)
-    _x = Conv2D(num_channels, 1, use_bias=True, name='output.%d.1' % hgid)(_x)
+    _x = Conv2D(num_channels, 1, use_bias=True, name='output.%d.%d.1' % (out_dim, hgid))(_x)
     out = Activation("sigmoid", name='output.%d.0.sigmoid' % hgid)(_x)
     return out
