@@ -5,17 +5,18 @@ from pathlib import Path
 
 class Config:
     def __init__(self, 
-        num_classes, train_path, test_path, checkpoint_path, annotation_filename, 
-        name='keras_model', data_base=None, logging_base=None, valid_path=None, image_id='image_id', weights_path=None,
+        num_classes, train_path, checkpoint_path, annotation_filename, data_base, 
+        num_channels=3, name='keras_model', logging_base=None, valid_path=None, test_paths=[], image_id='image_id', weights_path=None,
         epochs=1, batch_size=1, lr=1e-4, seed = 2610, test_size=0.2, val_size=0.2, input_size=512) -> None:
         self.name = name
         self.epochs = epochs
         self.batch_size = batch_size
         self.num_classes = num_classes
-        self.train_path = os.path.join(data_base, train_path) if data_base != None and train_path != None else train_path
-        self.test_path = os.path.join(data_base, test_path) if data_base != None and test_path != None else test_path
+        self.num_channels = num_channels
+        self.train_path = os.path.join(data_base, train_path) if train_path != None else train_path
+        self.test_paths = [os.path.join(data_base, test_path) for test_path in test_paths]
         self.annotation_filename = annotation_filename
-        self.valid_path = os.path.join(data_base, valid_path) if data_base != None and valid_path != None else valid_path
+        self.valid_path = os.path.join(data_base, valid_path) if valid_path != None else valid_path
         self.lr = lr
         self.seed = seed
         self.test_size = test_size
@@ -27,6 +28,8 @@ class Config:
         self.weights_path = weights_path
         self.logging_base = data_base if logging_base == None else logging_base
         self.checkpoint_path = os.path.join(self.logging_base, checkpoint_path) if self.logging_base != None else checkpoint_path
+
+        self.random_system()
     
     def random_system(self):
         random.seed(self.seed)

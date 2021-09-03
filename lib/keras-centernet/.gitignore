@@ -1,0 +1,8 @@
+src/*test*.py
+*__pycache__*
+paper
+.pytest_cache
+output
+repo
+annotations
+val2017

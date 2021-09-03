@@ -1,3 +1,4 @@
+from keras_centernet.models.hourglass import normalize_image
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -190,6 +191,7 @@ class DataGenerator(Sequence):
 
             # load source image
             img = cv2.imread(f'{self.train_path}/{filename}')
+            img = normalize_image(img)
             im_h, im_w = img.shape[:2]
             img = cv2.resize(img, (self.input_size, self.input_size))
 
@@ -219,6 +221,7 @@ class DataGenerator(Sequence):
 
             # load source image
             img = cv2.imread(f'{self.valid_path}/{filename}')
+            img = normalize_image(img)
             im_h, im_w = img.shape[:2]
             img = cv2.resize(img, (self.input_size, self.input_size))
 

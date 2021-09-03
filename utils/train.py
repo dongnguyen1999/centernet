@@ -1,3 +1,5 @@
+from keras_centernet.losses import compile_model
+from keras_centernet.dataset.vn_vehicle import DataGenerator
 from utils.config import Config
 from models.centernet import create_model
 from tensorflow.keras.losses import binary_crossentropy
@@ -5,13 +7,16 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoa
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 from tensorflow.keras.callbacks import CSVLogger
 from utils.loss_functions import CenterNetLosses
-from utils.callbacks import SaveBestmAP
+from keras_centernet.metrics import SaveBestmAP, TestmAP
 import os
 import numpy as np
 
 #####TRAIN##########
     
-def train(model, train_data, valid_data, config: Config):
+def train(model, train_df, valid_df, config: Config, test_df=None, generator=DataGenerator):
+
+    train_data = generator(train_df, config)
+    valid_data = generator(valid_df, config, mode='valid')
 
     if config.weights_path != None:
         weights_path = config.weights_path
@@ -41,27 +46,31 @@ def train(model, train_data, valid_data, config: Config):
 
     best_map_save_path = os.path.join(config.checkpoint_path, 'best_map')
     if os.path.exists(best_map_save_path) == False: os.makedirs(best_map_save_path)
-    save_best_map = SaveBestmAP(config, best_map_save_path, valid_data)
-
+    save_best_map = SaveBestmAP(config, best_map_save_path, valid_df)
     
     # define logger to log loss and val_loss every epoch
     csv_logger = CSVLogger(os.path.join(config.checkpoint_path, "history_log.csv"), append=True)
 
     # reduce learning rate
-    reduce_lr = ReduceLROnPlateau(monitor = 'val_loss', factor=0.25, patience=2, min_lr=1e-5, verbose=1)
+    reduce_lr = ReduceLROnPlateau(monitor = 'val_loss', factor=0.25, patience=2, min_lr=1e-6, verbose=1)
 
-    # compile loss functions
-    centernet_losses = CenterNetLosses(config)
-    centernet_loss, heatmap_loss, offset_loss, size_loss = centernet_losses.all_losses()
-    model.compile(loss=centernet_loss, optimizer=Adam(learning_rate=config.lr), metrics=[heatmap_loss,size_loss,offset_loss])
+    callbacks = [early_stopping, reduce_lr, model_frequently_checkpoint, model_bestloss_checkpoint, save_best_map, csv_logger]
 
+    if test_df is not None:
+        test_map_save_path = os.path.join(config.checkpoint_path, 'test_map')
+        if os.path.exists(test_map_save_path) == False: os.makedirs(test_map_save_path)
+        save_test_map = TestmAP(config, test_map_save_path, test_df)
+        callbacks.append(save_test_map)
+
+    model = compile_model(model, config)
+    
     hist = model.fit(
         train_data,
         steps_per_epoch = len(train_data),
         epochs = config.epochs, 
         validation_data=valid_data,
         validation_steps = len(valid_data),
-        callbacks = [early_stopping, reduce_lr, model_frequently_checkpoint, model_bestloss_checkpoint, save_best_map, csv_logger],
+        callbacks = callbacks,
         shuffle = True,
         verbose = 1,
     )
