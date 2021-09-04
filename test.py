@@ -1,3 +1,4 @@
+from keras_centernet.models.decode import _ctdet_decode, visualize
 from keras_centernet.metrics import calcmAP
 from keras_centernet.losses import compile_model
 from keras_centernet.dataset.vn_vehicle import load_data, DataGenerator
@@ -23,7 +24,7 @@ config = Config(
     name='hourglass_centernet_vehicle_v1',
     num_classes=3, 
     train_path='video1_all\\test', 
-    valid_path='video1_all\\valid',
+    valid_path='video1_all\\test',
     test_paths=['test\\test1', 'test\\test2'],
     checkpoint_path='models\hourglass_centernet_1stack_512\\rf_v1',
     annotation_filename='_annotations_custom_v2.txt',
@@ -37,7 +38,6 @@ config = Config(
 train_df, valid_df, test_df, le = load_data(config)
 
 # data_gen = DataGenerator(valid_df, config, mode='valid')
-
 # X, Y = data_gen.__getitem__(1)
 # print(Y.shape)
 
@@ -63,6 +63,20 @@ heads = {
 model = HourglassNetwork(heads=heads, **kwargs)
 model.summary()
 
+
 train(model, train_df, valid_df, config, test_df=test_df, generator=DataGenerator)
 
 # calcmAP(model, valid_df, config)
+
+# Y = Y[..., :config.num_classes+4]
+# print(Y.shape)
+
+# hm = Y[..., : config.num_classes]
+# reg = Y[..., config.num_classes: config.num_classes+2]
+# wh = Y[..., config.num_classes+2: config.num_classes+4]
+
+# detections = _ctdet_decode(hm, reg, wh)
+# print(detections)
+
+# visualize(detections[0], X[0], config, display=True)
+# plt.show()

@@ -141,7 +141,7 @@ class DataGenerator(Sequence):
             output_layer = heatmap(bbox, (self.image_height, self.image_width), self.config)
             output_layers.append(output_layer)
         
-        output_layers = np.array(output_layers)
+        output_layers = np.array(output_layers, np.float32)
         return output_layers
     
     def __load_grayscale(self, img_path):

@@ -132,10 +132,19 @@ def calcmAP(model, valid_df, config: Config, confidence=0.5, thresholds=np.arang
     img_name = os.path.basename(image_id)
     img_path = config.valid_path if path == None else path
     img = cv2.cvtColor(cv2.imread(os.path.join(img_path, img_name)), cv2.COLOR_BGR2RGB)
+    im_h, im_w = img.shape[:2]
     img = normalize_image(img)
     img = cv2.resize(img, (config.input_size, config.input_size))
 
-    boxes = valid_df[valid_df[config.image_id]==image_id][['x1', 'y1', 'x2', 'y2', 'label']].values
+    boxes = valid_df[valid_df[config.image_id]==image_id]
+
+    boxes.x1 = np.floor(boxes.x1 * config.input_size / im_w)
+    boxes.y1 = np.floor(boxes.y1 * config.input_size / im_h)
+    boxes.x2 = np.floor(boxes.x2 * config.input_size / im_w)
+    boxes.y2 = np.floor(boxes.y2 * config.input_size / im_h)
+
+    boxes = boxes[['x1', 'y1', 'x2', 'y2', 'label']].values
+    boxes = boxes.astype('int32')
 
     out = model_.predict(img[None])
     pred_box,scores=[],[]
@@ -148,6 +157,8 @@ def calcmAP(model, valid_df, config: Config, confidence=0.5, thresholds=np.arang
 
     pred_box = np.array(pred_box, dtype=np.int32)
     scores = np.array(scores)
+
+    # print(boxes, pred_box)
 
     preds_sorted_idx = np.argsort(scores)[::-1]
     preds_sorted = pred_box[preds_sorted_idx]
