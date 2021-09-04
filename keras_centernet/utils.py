@@ -82,6 +82,7 @@ def heatmap(bbox, image_size, config: Config, sigma=2): # image size (h, w)
         except:
           pass
       heatmap = get_heatmap(u, v)
+      print(label)
       output_layer[:,:,label] = np.maximum(output_layer[:,:,label], heatmap[:,:])
       output_layer[int(v), int(u), config.num_classes+4 + label] = 1
 
