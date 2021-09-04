@@ -42,7 +42,7 @@ def heatmap(bbox, image_size, config: Config, sigma=2): # image size (h, w)
         w*config.output_size/image_width, 
         h*config.output_size/image_height
       ) # Get xc, yc, w, h in output map
-      return x_c, y_c, width, height, label
+      return x_c, y_c, width, height, int(label)
     
     def get_heatmap(p_x, p_y):
       # Ref: https://www.kaggle.com/diegojohnson/centernet-objects-as-points
