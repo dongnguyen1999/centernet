@@ -28,6 +28,7 @@ def load_data(config: Config):
     train_df.label = le.fit_transform(train_df.label)
     test_df.label = le.transform(test_df.label)
     valid_df.label = le.transform(valid_df.label)
+    print(train_df.label.unique())
 
     print('Train data size: %d' % len(train_df.filename.unique()))
     print('Valid data size: %d' % len(valid_df.filename.unique()))
