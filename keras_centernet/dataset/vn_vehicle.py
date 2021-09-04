@@ -23,6 +23,7 @@ def load_data(config: Config):
 
     le = LabelEncoder()
     train_df.label = train_df['label'].apply(str)
+    print(train_df['label'].unique())
     train_df = train_df[train_df.label != 'person']
     train_df.label = le.fit_transform(train_df.label)
     test_df.label = le.transform(test_df.label)
