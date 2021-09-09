@@ -32,14 +32,14 @@ def train(model, train, valid, test, config: Config):
 
     best_f1_save_path = os.path.join(config.checkpoint_path, 'best_f1')
     if os.path.exists(best_f1_save_path) == False: os.makedirs(best_f1_save_path)
-    model_bestf1_checkpoint = ModelCheckpoint(os.path.join(best_f1_save_path, "{epoch:02d}-{f1:.3f}.hdf5"), monitor = 'val_f1', verbose = 1,
+    model_bestf1_checkpoint = ModelCheckpoint(os.path.join(best_f1_save_path, "{epoch:02d}-{val_f1:.3f}.hdf5"), monitor = 'val_f1', verbose = 1,
                                          save_best_only = True, save_weights_only = True, period = 1)
     
     # define logger to log loss and val_loss every epoch
     csv_logger = CSVLogger(os.path.join(config.checkpoint_path, "history_log.csv"), append=True)
 
     # reduce learning rate
-    reduce_lr = ReduceLROnPlateau(monitor = 'val_loss', factor=0.25, patience=2, min_lr=1e-6, verbose=1)
+    reduce_lr = ReduceLROnPlateau(monitor = 'val_loss', factor=0.25, patience=2, min_lr=1e-8, verbose=1)
 
     # compile model
     opt = Adam(learning_rate=config.lr)
