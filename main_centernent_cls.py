@@ -51,7 +51,7 @@ train_df, valid_df, test_df, le = load_data(config)
 
 # plt.show()
 
-model = create_model(config, 1)
+model = create_model(config, 2)
 model.summary()
 # model = ClassificationDecode(model)
 # y = model.predict(X)

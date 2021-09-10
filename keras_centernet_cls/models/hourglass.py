@@ -13,9 +13,10 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+
 from utils.config import Config
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Conv2D, Input, Activation, BatchNormalization, Add, UpSampling2D, ZeroPadding2D, Lambda
+from tensorflow.keras.layers import Conv2D, Input, Activation, BatchNormalization, Add, UpSampling2D, ZeroPadding2D, Lambda, Flatten, Dense
 from tensorflow.keras.utils import get_file
 import tensorflow.keras.backend as K
 import numpy as np
@@ -50,10 +51,7 @@ def create_model(config: Config, num_stacks=2):
   }
   heads = {
     'hm': config.num_classes,
-    'reg': 2,
-    'wh': 2
   }
-
   return HourglassNetwork(heads=heads, **kwargs)
 
 
@@ -101,34 +99,32 @@ def HourglassNetwork(heads, num_stacks, cnv_dim=256, inres=(512, 512), weights='
       inter = Add(name='inters.%d.inters.add' % i)([inter_, cnv_])
       inter = Activation('relu', name='inters.%d.inters.relu' % i)(inter)
       inter = residual(inter, cnv_dim, 'inters.%d' % i)
+    
+  hm = outputs[-1] # (-1, 512, 512, 3)
+  _x = Flatten()(hm)
+  _x = Dense(128, activation='relu', kernel_initializer='he_uniform')(_x)
+  _x = Dense(1, activation='sigmoid', name='class')(_x)
+
+  end_hm = Activation('sigmoid', name='heatmap')(hm)
+  model = Model(inputs=input_layer, outputs=[end_hm, _x])
   
-  model = Model(inputs=input_layer, outputs=outputs)
-  if weights == 'ctdet_coco':
-    weights_path = get_file(
-      '%s_hg.hdf5' % weights,
-      CTDET_COCO_WEIGHTS_PATH,
-      cache_subdir='models',
-      file_hash='ce01e92f75b533e3ff8e396c76d55d97ff3ec27e99b1bdac1d7b0d6dcf5d90eb')
-    model.load_weights(weights_path, by_name=True)
-  elif weights == 'hpdet_coco':
-    weights_path = get_file(
-      '%s_hg.hdf5' % weights,
-      HPDET_COCO_WEIGHTS_PATH,
-      cache_subdir='models',
-      file_hash='5c562ee22dc383080629dae975f269d62de3a41da6fd0c821085fbee183d555d')
-    model.load_weights(weights_path, by_name=True)
-  elif weights is not None:
-    model.load_weights(weights, by_name=True)
+  # if weights == 'ctdet_coco':
+  #   weights_path = get_file(
+  #     '%s_hg.hdf5' % weights,
+  #     CTDET_COCO_WEIGHTS_PATH,
+  #     cache_subdir='models',
+  #     file_hash='ce01e92f75b533e3ff8e396c76d55d97ff3ec27e99b1bdac1d7b0d6dcf5d90eb')
+  #   model.load_weights(weights_path, by_name=True)
+  # elif weights == 'hpdet_coco':
+  #   weights_path = get_file(
+  #     '%s_hg.hdf5' % weights,
+  #     HPDET_COCO_WEIGHTS_PATH,
+  #     cache_subdir='models',
+  #     file_hash='5c562ee22dc383080629dae975f269d62de3a41da6fd0c821085fbee183d555d')
+  #   model.load_weights(weights_path, by_name=True)
+  # elif weights is not None:
+  #   model.load_weights(weights, by_name=True)
 
-  def _decode(args):
-    hm, reg, wh = args[-3:]
-    hm = tf.sigmoid(hm)
-    reg = tf.sigmoid(reg)
-    wh = tf.nn.relu(wh)
-
-    return tf.concat([hm, reg, wh], axis=3)
-  output = Lambda(_decode)(model.outputs)
-  model = Model(model.input, output)
   return model
 
 
