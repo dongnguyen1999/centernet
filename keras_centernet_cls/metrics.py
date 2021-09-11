@@ -69,12 +69,12 @@ class SaveBestScore(Callback):
 
   def on_epoch_end(self, epoch, logs=None):
     accuracy, prediction, recall, f1 = calcScore(self.model, self.valid_df, self.le, self.crowd_threshold, self.config, confidence=self.confidence)
-    print('Current: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (accuracy, prediction, recall, f1))
+    print('Valid current: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (accuracy, prediction, recall, f1))
     if f1 > self.best:
       self.best = f1
       self.best_epoch = epoch
       self.best_weights = self.model.get_weights()
-      print('Best f1 score: %.4f, saving model to %s' % (f1, os.path.join(self.path, '{epoch:03d}-{f1:.3f}.hdf5'.format(epoch=epoch, map=f1))))
+      print('Valid best f1 score: %.4f, saving model to %s' % (f1, os.path.join(self.path, '{epoch:03d}-{f1:.3f}.hdf5'.format(epoch=epoch, map=f1))))
       self.model.save_weights(os.path.join(self.path, '{epoch:03d}-{map:.3f}.hdf5'.format(epoch=epoch, map=f1)))
   
   def on_train_end(self, logs=None):
@@ -100,6 +100,7 @@ class TestScore(Callback):
       print(f'Evalutate test{test_id}')
       test_df = self.test_df[self.test_df['test_id'] == test_id]
       accuracy, prediction, recall, f1 = calcScore(self.model, test_df, self.le, self.crowd_threshold, self.config, confidence=self.confidence, path=test_path)
+      print('test%d: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (test_id, accuracy, prediction, recall, f1))
       r = [f'test{test_id}', accuracy, prediction, recall, f1]
       rdf.append(r)
 
