@@ -17,7 +17,7 @@ import numpy as np
 def train(model, train_df, valid_df, le, crowd_threshold, config: Config, test_df=None, generator=DataGenerator):
 
     train_data = generator(train_df, le, crowd_threshold, config)
-    valid_data = generator(train_df, le, crowd_threshold, config, mode='valid')
+    valid_data = generator(valid_df, le, crowd_threshold, config, mode='valid')
 
     if config.weights_path != None:
         weights_path = config.weights_path
