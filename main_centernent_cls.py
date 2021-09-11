@@ -1,3 +1,4 @@
+from keras_centernet_cls.metrics import calcScore
 from keras_centernet_cls.models.decode import ClassificationDecode
 from keras_centernet_cls.train import train
 from keras_centernet_cls.models.hourglass import create_model
@@ -57,7 +58,10 @@ model.summary()
 # y = model.predict(X)
 # print(y)
 
-train(model, train_df, valid_df, le, 30, config, test_df=test_df, generator=DataGenerator)
+accuracy, prediction, recall, f1 = calcScore(model, valid_df, le, 21, config, 0.5)
+print('Valid current: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (accuracy, prediction, recall, f1))
+
+# train(model, train_df, valid_df, le, 30, config, test_df=test_df, generator=DataGenerator)
 
 # calcmAP(model, valid_df, config)
 

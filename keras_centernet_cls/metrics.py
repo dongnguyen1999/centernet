@@ -11,7 +11,7 @@ import numpy as np
 import cv2
 import pandas as pd
 
-def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, path=None):
+def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, path=None, debug=False):
   model_ = ClassificationDecode(model)
   
   tp, tn, fp, fn = 0, 0, 0, 0
@@ -31,7 +31,11 @@ def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, pat
 
     y_true = 1 if count_image(boxes, le) > crowd_threshold else 0
 
+    if debug == True: print(f'count image: {count_image(boxes, le)}; threshold: {crowd_threshold}; y_true: {y_true}')
+
     y_pred = 1 if model_.predict(img[None])[0][0] > confidence else 0
+
+    if debug == True: print(f'score: {model_.predict(img[None])[0][0]}; confidence: {confidence}')
 
     if (y_true == 1 and y_pred == 1):
       tp += 1
@@ -42,7 +46,7 @@ def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, pat
     elif (y_true == 0 and y_pred == 0):
       tn += 1
 
-  # print(tp, tn, fp, fn)
+  if debug == True: print('tp, tn, fp, fn: ', tp, tn, fp, fn)
   accuracy = (tp + tn) / (tp + tn + fp + fn + 0.000001)
   precision = tp / (tp + fp + 0.000001)
   recall = tp / (tp + tn + 0.000001)
