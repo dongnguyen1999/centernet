@@ -40,8 +40,8 @@ train_df, valid_df, test_df, le = load_data(config)
 
 # print(estimate_crowd_threshold(train_df, le, config))
 
-# data_gen = DataGenerator(valid_df, le, 30, config, mode='valid')
-# X, Y = data_gen.__getitem__(1)
+data_gen = DataGenerator(valid_df, le, 30, config, mode='valid')
+X, Y = data_gen.__getitem__(1)
 # print(Y)
 
 # img = cv2.resize(X[0], (config.output_size,config.output_size))
@@ -51,13 +51,13 @@ train_df, valid_df, test_df, le = load_data(config)
 
 # plt.show()
 
-model = create_model(config, 1)
-model.summary()
-# model = ClassificationDecode(model)
-# y = model.predict(X)
-# print(y)
+# model = create_model(config, 1)
+# model.summary()
+# # model = ClassificationDecode(model)
+# # y = model.predict(X)
+# # print(y)
 
-train(model, train_df, valid_df, le, 30, config, test_df=test_df, generator=DataGenerator)
+# train(model, train_df, valid_df, le, 30, config, test_df=test_df, generator=DataGenerator)
 
 # calcmAP(model, valid_df, config)
 

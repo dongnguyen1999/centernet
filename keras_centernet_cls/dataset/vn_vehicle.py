@@ -181,6 +181,7 @@ class DataGenerator(Sequence):
         return img
     
     def __load_rgb(self, img_path):
+        print(img_path)
         img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
         img = normalize_image(img)
         return img
