@@ -15,7 +15,7 @@ def compile_model(model, config: Config, loss_weights=[1, 1], alpha = 2., beta =
     precision = true_positives / (predicted_positives + K.epsilon())
     recall = true_positives / (possible_positives + K.epsilon())
     f1_val = 2*(precision*recall)/(precision+recall+K.epsilon())
-    return (1-f1_val)
+    return f1_val
 
   def precision(y_true, y_pred):
     true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
