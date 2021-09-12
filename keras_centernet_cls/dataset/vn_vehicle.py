@@ -112,7 +112,8 @@ class DataGenerator(Sequence):
 
     def __len__(self):
         'Denotes the number of batches per epoch'
-        return int(np.floor(len(self.list_IDs) / self.batch_size))
+        steps_factor = self.config.steps_factor if self.mode == 'fit' and self.config.steps_factor != None else 1
+        return int(np.floor(len(self.list_IDs) * steps_factor/ self.batch_size))
 
     def __getitem__(self, index):
         'Generate one batch of data'
@@ -132,7 +133,6 @@ class DataGenerator(Sequence):
         
     def on_epoch_end(self):
         'Updates indexes after each epoch'
-        print('Calling on epoch end...')
         self.indexes = np.arange(len(self.list_IDs))
         if self.shuffle == True:
             np.random.seed(self.random_state)
@@ -159,20 +159,18 @@ class DataGenerator(Sequence):
         cls = []
         for i, ID in enumerate(list_IDs_batch):
             # print(self.df)
-            bbox = self.df[self.df[self.image_id]==ID][['x1', 'y1', 'x2', 'y2', 'label']].values
-            hm = heatmap(bbox, (self.image_height, self.image_width), self.config)
-            hms.append(hm)
+            # bbox = self.df[self.df[self.image_id]==ID][['x1', 'y1', 'x2', 'y2', 'label']].values
+            # hm = heatmap(bbox, (self.image_height, self.image_width), self.config)
+            # hms.append(hm)
 
             cl = count_image(self.df[self.df[self.image_id]==ID], self.le)
             cl = 1 if cl >= self.crowd_threshold else 0
             cls.append(cl)
 
-        
-        hms = np.array(hms, np.float32)
         cls = np.array(cls, np.float32)
         cls = cls.reshape((-1, 1))
 
-        return [hms, cls]
+        return cls
     
     def __load_grayscale(self, img_path):
         img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)

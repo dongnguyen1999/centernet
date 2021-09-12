@@ -51,7 +51,10 @@ def create_model(config: Config, num_stacks=2):
   }
   heads = {
     'hm': config.num_classes,
+    'reg': 2,
+    'wh': 2
   }
+
   return HourglassNetwork(heads=heads, **kwargs)
 
 

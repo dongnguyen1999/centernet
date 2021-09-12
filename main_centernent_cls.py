@@ -1,7 +1,6 @@
+from keras_centernet_cls.models.cnn import create_model
 from keras_centernet_cls.metrics import calcScore
-from keras_centernet_cls.models.decode import ClassificationDecode
 from keras_centernet_cls.train import train
-from keras_centernet_cls.models.hourglass import create_model
 from keras_centernet.models.decode import _ctdet_decode, visualize
 from keras_centernet.metrics import calcmAP
 from keras_centernet.losses import compile_model
@@ -24,8 +23,8 @@ import random
 
 config = Config(
     name='hourglass_centernet_vehicle_v1',
-    num_classes=3, 
-    train_path='video1_all\\train', 
+    num_classes=2, 
+    train_path='video1_all\\test', 
     valid_path='video1_all\\test',
     test_paths=['video1_all\\test'],
     checkpoint_path='models\hourglass_centernet_1stack_512\\rf_v1',
@@ -34,7 +33,6 @@ config = Config(
     epochs=50,
     batch_size=1,
     image_id='filename',
-    # weights_path='/kaggle/working/centernet.hdf5',
 )
 
 train_df, valid_df, test_df, le = load_data(config)
@@ -42,8 +40,20 @@ train_df, valid_df, test_df, le = load_data(config)
 # print(estimate_crowd_threshold(train_df, le, config))
 
 # data_gen = DataGenerator(valid_df, le, 30, config, mode='valid')
-# X, Y = data_gen.__getitem__(1)
-# print(Y)
+# for X, y in data_gen:
+#     if y[0,0] == 1:
+#         img = X
+#         # plt.imshow(X[0])
+#         # plt.show()
+#         break
+
+model = create_model(config, architecture='pretrained_vgg16')
+model.summary()
+
+train(model, train_df, valid_df, le, 30, config, test_df=test_df, generator=DataGenerator)
+
+# y = model.predict(img)
+# print(y)
 
 # img = cv2.resize(X[0], (config.output_size,config.output_size))
 
@@ -52,14 +62,8 @@ train_df, valid_df, test_df, le = load_data(config)
 
 # plt.show()
 
-model = create_model(config, 2)
-model.summary()
-# model = ClassificationDecode(model)
-# y = model.predict(X)
-# print(y)
-
-accuracy, prediction, recall, f1 = calcScore(model, valid_df, le, 21, config, 0.5)
-print('Valid current: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (accuracy, prediction, recall, f1))
+# accuracy, prediction, recall, f1 = calcScore(model, valid_df, le, 21, config, 0.5)
+# print('Valid current: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (accuracy, prediction, recall, f1))
 
 # train(model, train_df, valid_df, le, 30, config, test_df=test_df, generator=DataGenerator)
 

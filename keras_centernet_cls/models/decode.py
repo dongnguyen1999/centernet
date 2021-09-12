@@ -62,15 +62,6 @@ def _ctdet_decode(hm, reg, wh, k=100, output_stride=4):
   return detections
 
 
-def ClassificationDecode(model, k=100,output_stride=4):
-  def _decode(args):
-    hm, cls = args
-    return cls
-  output = Lambda(_decode)(model.outputs)
-  model = Model(model.input, output)
-  return model
-
-
 def visualize(box_and_score, img, config: Config, confidence=0.5, le=None, display=False):
   boxes = []
   scores = []

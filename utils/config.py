@@ -7,7 +7,7 @@ class Config:
     def __init__(self, 
         num_classes, train_path, checkpoint_path, annotation_filename, data_base, 
         num_channels=3, name='keras_model', logging_base=None, valid_path=None, test_path=None, test_paths=[], image_id='image_id', weights_path=None,
-        epochs=1, batch_size=1, lr=1e-4, momentum=0.9, seed = 2610, test_size=0.2, val_size=0.2, input_size=512, steps_per_epoch=None) -> None:
+        epochs=1, batch_size=1, lr=1e-4, momentum=0.9, seed = 2610, test_size=0.2, val_size=0.2, input_size=512, steps_factor=None) -> None:
         self.name = name
         self.epochs = epochs
         self.batch_size = batch_size
@@ -30,7 +30,7 @@ class Config:
         self.weights_path = weights_path
         self.logging_base = data_base if logging_base == None else logging_base
         self.checkpoint_path = os.path.join(self.logging_base, checkpoint_path) if self.logging_base != None else checkpoint_path
-        self.steps_per_epoch = steps_per_epoch
+        self.steps_factor = steps_factor
         self.random_system()
     
     def random_system(self):

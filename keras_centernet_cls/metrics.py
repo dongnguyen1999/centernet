@@ -4,7 +4,6 @@ from keras_centernet.utils import normalize_image
 import os
 from tqdm.std import trange
 from utils.config import Config
-from keras_centernet_cls.models.decode import ClassificationDecode
 from typing import List, Union
 from tensorflow.keras.callbacks import Callback
 import numpy as np
@@ -12,13 +11,13 @@ import cv2
 import pandas as pd
 
 def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, path=None, debug=False):
-  model_ = ClassificationDecode(model)
   
   tp, tn, fp, fn = 0, 0, 0, 0
 
   image_ids = valid_df[config.image_id].unique()
-  
-  for idx in trange(len(image_ids)):
+  iterator = trange(len(image_ids))
+  if debug == True: iterator = range(len(image_ids))
+  for idx in iterator:
     image_id = image_ids[idx]
     img_name = os.path.basename(image_id)
     img_path = config.valid_path if path == None else path
@@ -33,9 +32,11 @@ def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, pat
 
     if debug == True and y_true == 1: print(f'count image: {count_image(boxes, le)}; threshold: {crowd_threshold}; y_true: {y_true}')
 
-    y_pred = 1 if model_.predict(img[None])[0][0] > confidence else 0
+    score = model.predict(img[None])[0, 0]
 
-    if debug == True and y_true == 1: print(f'score: {model_.predict(img[None])[0][0]}; confidence: {confidence}; y_pred: {y_pred}')
+    y_pred = 1 if score > confidence else 0
+
+    if debug == True and y_true == 1: print(f'score: {score}; confidence: {confidence}; y_pred: {y_pred}')
 
     if (y_true == 1 and y_pred == 1):
       tp += 1
