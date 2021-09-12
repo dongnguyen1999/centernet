@@ -58,7 +58,7 @@ def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, pat
 
 
 class SaveBestScore(Callback):
-  def __init__(self, config: Config, path, valid_df, le, crowd_threshold, confidence=0.1):
+  def __init__(self, config: Config, path, valid_df, le, crowd_threshold, confidence=0.25):
     super(SaveBestScore, self).__init__()
     self.config = config
     self.best_weights = None
@@ -86,7 +86,7 @@ class SaveBestScore(Callback):
     print('Training ended, the best f1 score weight is at epoch %03d with map %.3f' % (self.best_epoch, self.best))  
 
 class TestScore(Callback):
-  def __init__(self, config: Config, path, test_df, le, crowd_threshold, confidence=0.5):
+  def __init__(self, config: Config, path, test_df, le, crowd_threshold, confidence=0.25):
     super(TestScore, self).__init__()
     self.config = config
     self.best_weights = None
