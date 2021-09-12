@@ -31,11 +31,11 @@ def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, pat
 
     y_true = 1 if count_image(boxes, le) > crowd_threshold else 0
 
-    if debug == True: print(f'count image: {count_image(boxes, le)}; threshold: {crowd_threshold}; y_true: {y_true}')
+    if debug == True and y_true == 1: print(f'count image: {count_image(boxes, le)}; threshold: {crowd_threshold}; y_true: {y_true}')
 
     y_pred = 1 if model_.predict(img[None])[0][0] > confidence else 0
 
-    if debug == True: print(f'score: {model_.predict(img[None])[0][0]}; confidence: {confidence}')
+    if debug == True and y_true == 1: print(f'score: {model_.predict(img[None])[0][0]}; confidence: {confidence}; y_pred: {y_pred}')
 
     if (y_true == 1 and y_pred == 1):
       tp += 1
@@ -46,7 +46,7 @@ def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, pat
     elif (y_true == 0 and y_pred == 0):
       tn += 1
 
-  if debug == True: print('tp, tn, fp, fn: ', tp, tn, fp, fn)
+  if debug == True and y_true == 1: print('tp, tn, fp, fn: ', tp, tn, fp, fn)
   accuracy = (tp + tn) / (tp + tn + fp + fn + 0.000001)
   precision = tp / (tp + fp + 0.000001)
   recall = tp / (tp + tn + 0.000001)
@@ -72,7 +72,7 @@ class SaveBestScore(Callback):
     self.best_epoch = 0
 
   def on_epoch_end(self, epoch, logs=None):
-    accuracy, prediction, recall, f1 = calcScore(self.model, self.valid_df, self.le, self.crowd_threshold, self.config, confidence=self.confidence)
+    accuracy, prediction, recall, f1 = calcScore(self.model, self.valid_df, self.le, self.crowd_threshold, self.config, confidence=self.confidence, debug=True)
     print('Valid current: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (accuracy, prediction, recall, f1))
     if f1 > self.best:
       self.best = f1
@@ -82,7 +82,7 @@ class SaveBestScore(Callback):
       self.model.save_weights(os.path.join(self.path, '{epoch:03d}-{map:.3f}.hdf5'.format(epoch=epoch, map=f1)))
   
   def on_train_end(self, logs=None):
-    print('Training ended, the best f1 score weight is at epoch %03d with map %.3f' % (self.best_epoch, self.best))
+    print('Training ended, the best f1 score weight is at epoch %03d with map %.3f' % (self.best_epoch, self.best))  
 
 class TestScore(Callback):
   def __init__(self, config: Config, path, test_df, le, crowd_threshold, confidence=0.5):
