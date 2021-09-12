@@ -79,7 +79,7 @@ class SaveBestScore(Callback):
       self.best = f1
       self.best_epoch = epoch
       self.best_weights = self.model.get_weights()
-      print('Valid best f1 score: %.4f, saving model to %s' % (f1, os.path.join(self.path, '{epoch:03d}-{f1:.3f}.hdf5'.format(epoch=epoch, map=f1))))
+      print('Valid best f1 score: %.4f, saving model to %s' % (f1, os.path.join(self.path, '{epoch:03d}-{f1:.3f}.hdf5'.format(epoch=epoch, f1=f1))))
       self.model.save_weights(os.path.join(self.path, '{epoch:03d}-{map:.3f}.hdf5'.format(epoch=epoch, map=f1)))
   
   def on_train_end(self, logs=None):
