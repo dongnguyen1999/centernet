@@ -67,7 +67,7 @@ def train(model, train_df, valid_df, le, crowd_threshold, config: Config, test_d
     
     hist = model.fit(
         train_data,
-        steps_per_epoch = len(train_data),
+        steps_per_epoch = len(train_data) if config.steps_per_epoch == None else len(train_data)*config.steps_per_epoch,
         epochs = config.epochs, 
         validation_data=valid_data,
         validation_steps = len(valid_data),
