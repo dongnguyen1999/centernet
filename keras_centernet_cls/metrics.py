@@ -58,7 +58,7 @@ def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, pat
 
 
 class SaveBestScore(Callback):
-  def __init__(self, config: Config, path, valid_df, le, crowd_threshold, confidence=0.5):
+  def __init__(self, config: Config, path, valid_df, le, crowd_threshold, confidence=0.1):
     super(SaveBestScore, self).__init__()
     self.config = config
     self.best_weights = None

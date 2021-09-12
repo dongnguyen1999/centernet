@@ -3,7 +3,10 @@ from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.applications.vgg19 import VGG19
 from tensorflow.keras.applications.inception_v3 import InceptionV3
-from tensorflow.keras.applications.resnet50 import ResNet50
+# from tensorflow.keras.applications.resnet50 import ResNet50
+from tensorflow.keras.applications.resnet import ResNet50
+from tensorflow.keras.applications.resnet import ResNet101
+from tensorflow.keras.applications.resnet import ResNet152
 from utils.config import Config
 
 def create_model(config: Config, architecture='vgg_1_block', weights=None, feature_weights=None, predictor_weights=None):
@@ -17,6 +20,8 @@ def create_model(config: Config, architecture='vgg_1_block', weights=None, featu
 		'pretrained_vgg19': VGG19,
 		'pretrained_inceptionv3': InceptionV3,
 		'pretrained_resnet50': ResNet50,
+		'pretrained_resnet101': ResNet101,
+		'pretrained_resnet152': ResNet152,
 	}
 
 	if architecture in model_map:
