@@ -132,6 +132,7 @@ class DataGenerator(Sequence):
         
     def on_epoch_end(self):
         'Updates indexes after each epoch'
+        print('Calling on epoch end...')
         self.indexes = np.arange(len(self.list_IDs))
         if self.shuffle == True:
             np.random.seed(self.random_state)
