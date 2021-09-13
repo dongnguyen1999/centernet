@@ -61,10 +61,10 @@ def eval(model, checkpoint_path, valid_df, test_df, le, crowd_threshold, config:
         accuracy, precision, recall, f1 = calcScore(model, valid_df, le, crowd_threshold, config, confidence=confidence)
         if model_name != None:
             model_names.append(model_name)
-            print('%s valid: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (model_name, accuracy, prediction, recall, f1))
+            print('%s valid: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (model_name, accuracy, precision, recall, f1))
         else:
             model_names.append(checkpoint_path)
-            print('%s Valid: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (model_name, accuracy, prediction, recall, f1))
+            print('%s Valid: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (model_name, accuracy, precision, recall, f1))
 
         epochs.append(epoch_num)
         testsets.append('valid')
@@ -78,13 +78,13 @@ def eval(model, checkpoint_path, valid_df, test_df, le, crowd_threshold, config:
             print(f'Evalutate test{test_id}')
             current_test_df = test_df[test_df['test_id'] == test_id]
 
-            accuracy, prediction, recall, f1 = calcScore(model, current_test_df, le, crowd_threshold, config, confidence=confidence, path=test_path)
+            accuracy, precision, recall, f1 = calcScore(model, current_test_df, le, crowd_threshold, config, confidence=confidence, path=test_path)
             if model_name != None:
                 model_names.append(model_name)
-                print('%s test%d: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (model_name, test_id, accuracy, prediction, recall, f1))
+                print('%s test%d: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (model_name, test_id, accuracy, precision, recall, f1))
             else:
                 model_names.append(checkpoint_path)
-                print('test%d: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (test_id, accuracy, prediction, recall, f1))
+                print('test%d: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (test_id, accuracy, precision, recall, f1))
 
             epochs.append(epoch_num)
             testsets.append(f'test{test_id}')
