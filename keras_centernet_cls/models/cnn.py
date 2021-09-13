@@ -53,11 +53,12 @@ def vgg_2block(config: Config):
 	model.add(Dense(1, activation='sigmoid'))
 	return model
 
-def pretrained_feature_extractor(config: Config, feature_extractor, units=128):
+def pretrained_feature_extractor(config: Config, feature_extractor, freeze_feature_block=True, units=128):
 	model = feature_extractor(include_top=False, input_shape=(config.input_size, config.input_size, 3))
 	# mark loaded layers as not trainable
-	for layer in model.layers:
-		layer.trainable = False
+	if freeze_feature_block == True:
+		for layer in model.layers:
+			layer.trainable = False
 	# add new classifier layers
 	flat1 = Flatten()(model.layers[-1].output)
 	class1 = Dense(units, activation='relu', kernel_initializer='he_uniform')(flat1)
