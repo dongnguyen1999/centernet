@@ -45,9 +45,39 @@ def load_data(config: Config):
     valid_df.label = le.transform(valid_df.label)
     # print(train_df.label.unique())
 
+
     print('Train data size: %d' % len(train_df.filename.unique()))
+    poss_count = 0
+    neg_count = 0
+    for img_id in train_df[config.image_id].unique():
+        temp_df = train_df[train_df[config.image_id] == img_id]
+        if count_image(temp_df, le) > config.crowd_threshold:
+            poss_count += 1
+        else:
+            neg_count += 1
+    print(f'Label 1: {poss_count}; Label 0: {neg_count}; Label 1 rate: {poss_count/(poss_count+neg_count)}')
+    
     print('Valid data size: %d' % len(valid_df.filename.unique()))
+    poss_count = 0
+    neg_count = 0
+    for img_id in valid_df[config.image_id].unique():
+        temp_df = valid_df[valid_df[config.image_id] == img_id]
+        if count_image(temp_df, le) > config.crowd_threshold:
+            poss_count += 1
+        else:
+            neg_count += 1
+    print(f'Label 1: {poss_count}; Label 0: {neg_count}; Label 1 rate: {poss_count/(poss_count+neg_count)}')
+
     print('Test data size: %d' % len(test_df.filename.unique()))
+    poss_count = 0
+    neg_count = 0
+    for img_id in test_df[config.image_id].unique():
+        temp_df = test_df[test_df[config.image_id] == img_id]
+        if count_image(temp_df, le) > config.crowd_threshold:
+            poss_count += 1
+        else:
+            neg_count += 1
+    print(f'Label 1: {poss_count}; Label 0: {neg_count}; Label 1 rate: {poss_count/(poss_count+neg_count)}')
 
     return train_df, valid_df, test_df, le
 
