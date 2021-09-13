@@ -10,7 +10,7 @@ from tensorflow.keras.applications.resnet import ResNet152
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
 from utils.config import Config
 
-def create_model(config: Config, architecture='vgg_1_block', weights=None, feature_weights=None, predictor_weights=None):
+def create_model(config: Config, architecture='vgg_1_block', freeze_feature_block=True, weights=None, feature_weights=None, predictor_weights=None):
 	model_map = {
 		'vgg_1_block': vgg_1block,
 		'vgg_2_block': vgg_2block,
@@ -29,7 +29,7 @@ def create_model(config: Config, architecture='vgg_1_block', weights=None, featu
 	if architecture in model_map:
 		model = model_map[architecture](config)
 	if architecture in transfer_learning_map:
-		model = pretrained_feature_extractor(config, transfer_learning_map[architecture])
+		model = pretrained_feature_extractor(config, transfer_learning_map[architecture], freeze_feature_block=freeze_feature_block)
 	return model
 
 # define cnn model
