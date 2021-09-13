@@ -20,10 +20,10 @@ import pandas as pd
 def eval_models(valid_df, test_df, le, crowd_threshold, config: Config, model_prefix=None, model_ckpt_paths=[], model_garden={}):
 
     if model_prefix != None:
-        model_ckpt_paths = glob(os.path.join(config.checkpoint_path, f'models/{model_prefix}*/'))
+        model_ckpt_paths = glob(os.path.join(config.logging_base, f'models/{model_prefix}*/'))
     print(model_ckpt_paths)
     count = 0
-    result = None
+    # result = None
     for ckpt_path in model_ckpt_paths:
         model_name = os.path.basename(ckpt_path)
         for k in model_garden:
@@ -43,7 +43,7 @@ def eval_models(valid_df, test_df, le, crowd_threshold, config: Config, model_pr
             count += 1
     
     # if result != None:
-    #     result.to_csv(os.path.join(config.checkpoint_path, f'eval_{model_prefix}.csv'), index=False, header=True)
+    #     result.to_csv(os.path.join(config.logging_base, f'eval_{model_prefix}.csv'), index=False, header=True)
     
         
     
