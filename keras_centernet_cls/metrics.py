@@ -47,7 +47,7 @@ def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, pat
     elif (y_true == 0 and y_pred == 0):
       tn += 1
 
-  if debug == True and y_true == 1: print('tp, tn, fp, fn: ', tp, tn, fp, fn)
+  if debug == True: print('tp, tn, fp, fn: ', tp, tn, fp, fn)
   accuracy = (tp + tn) / (tp + tn + fp + fn + 0.000001)
   precision = tp / (tp + fp + 0.000001)
   recall = tp / (tp + tn + 0.000001)

@@ -1,3 +1,4 @@
+from keras_centernet_cls.eval import eval_models
 from keras_centernet_cls.models.cnn import create_model
 from keras_centernet_cls.metrics import calcScore
 from keras_centernet_cls.train import train
@@ -47,10 +48,23 @@ train_df, valid_df, test_df, le = load_data(config)
 #         # plt.show()
 #         break
 
-model = create_model(config, architecture='pretrained_resnet50', freeze_feature_block=False)
-model.summary()
+# model = create_model(config, architecture='pretrained_resnet50', freeze_feature_block=False)
+# model.summary()
 
-train(model, train_df, valid_df, le, 30, config, test_df=test_df, generator=DataGenerator)
+# train(model, train_df, valid_df, le, 30, config, test_df=test_df, generator=DataGenerator)
+# eval(model, train_df, valid_df, le, 30, config, test_df=test_df, generator=DataGenerator)
+eval_models(valid_df, test_df, le, 20, config, model_prefix='crowd_cls', 
+    model_garden={
+        'resnet50_fineturning': create_model(config, architecture='pretrained_resnet50', freeze_feature_block=False),
+        'vgg19': create_model(config, architecture='pretrained_vgg19'),
+        'vgg16': create_model(config, architecture='pretrained_vgg16'),
+        'resnet152': create_model(config, architecture='pretrained_resnet152'),
+        'resnet101': create_model(config, architecture='pretrained_resnet101'),
+        'resnet50': create_model(config, architecture='pretrained_resnet50'),
+        'mobilenetv2': create_model(config, architecture='pretrained_mobilenetv2'),
+        'inceptionv3': create_model(config, architecture='pretrained_inceptionv3'),
+    }
+)
 
 # y = model.predict(img)
 # print(y)
