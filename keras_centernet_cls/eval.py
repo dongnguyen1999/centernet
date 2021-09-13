@@ -42,8 +42,8 @@ def eval_models(valid_df, test_df, le, crowd_threshold, config: Config, model_pr
                 result = pd.concat([result, df])
             count += 1
     
-    if result != None:
-        result.to_csv(os.path.join(config.checkpoint_path, f'eval_{model_prefix}.csv'), index=False, header=True)
+    # if result != None:
+    #     result.to_csv(os.path.join(config.checkpoint_path, f'eval_{model_prefix}.csv'), index=False, header=True)
     
         
     
