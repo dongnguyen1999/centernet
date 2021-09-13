@@ -25,14 +25,14 @@ def eval_models(valid_df, test_df, le, crowd_threshold, config: Config, model_pr
     count = 0
     # result = None
     for ckpt_path in model_ckpt_paths:
-        model_name = os.path.basename(ckpt_path)
+        model_name = os.path.basename(ckpt_path[:-1])
         for k in model_garden:
             if k in model_name:
                 model = model_garden[k]
                 break
         versions = glob(os.path.join(ckpt_path, 'v*/'))
         for version in versions:
-            version_name = os.path.basename(version)
+            version_name = os.path.basename(version[:-1])
             version_model_name = f'{model_name}_{version_name}'
             print(f'Evaluating model {version_model_name}')
             df = eval(model, os.path.join(version, 'every_epoch'), valid_df, test_df, le, crowd_threshold, config, model_name=version_model_name)
