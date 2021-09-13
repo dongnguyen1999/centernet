@@ -21,7 +21,7 @@ def eval_models(valid_df, test_df, le, crowd_threshold, config: Config, model_pr
 
     if model_prefix != None:
         model_ckpt_paths = glob(os.path.join(config.checkpoint_path, f'models/{model_prefix}*/'))
-
+    print(model_ckpt_paths)
     count = 0
     for ckpt_path in model_ckpt_paths:
         model_name = os.path.basename(ckpt_path)
