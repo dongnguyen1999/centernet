@@ -7,6 +7,7 @@ from tensorflow.keras.applications.inception_v3 import InceptionV3
 from tensorflow.keras.applications.resnet import ResNet50
 from tensorflow.keras.applications.resnet import ResNet101
 from tensorflow.keras.applications.resnet import ResNet152
+from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
 from utils.config import Config
 
 def create_model(config: Config, architecture='vgg_1_block', weights=None, feature_weights=None, predictor_weights=None):
@@ -22,6 +23,7 @@ def create_model(config: Config, architecture='vgg_1_block', weights=None, featu
 		'pretrained_resnet50': ResNet50,
 		'pretrained_resnet101': ResNet101,
 		'pretrained_resnet152': ResNet152,
+		'pretrained_mobilenetv2': MobileNetV2,
 	}
 
 	if architecture in model_map:
