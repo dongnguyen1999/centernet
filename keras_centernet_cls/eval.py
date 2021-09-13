@@ -21,9 +21,8 @@ def eval_models(valid_df, test_df, le, crowd_threshold, config: Config, model_pr
 
     if model_prefix != None:
         model_ckpt_paths = glob(os.path.join(config.logging_base, f'models/{model_prefix}*/'))
-    print(model_ckpt_paths)
-    count = 0
-    # result = None
+    # print(model_ckpt_paths)
+    result = pd.DataFrame([], columns=['model_name', 'epoch', 'testset', 'accuracy', 'precision', 'recall', 'f1'])
     for ckpt_path in model_ckpt_paths:
         model_name = os.path.basename(ckpt_path[:-1])
         for k in model_garden:
@@ -36,14 +35,10 @@ def eval_models(valid_df, test_df, le, crowd_threshold, config: Config, model_pr
             version_model_name = f'{model_name}_{version_name}'
             print(f'Evaluating model {version_model_name}')
             df = eval(model, os.path.join(version, 'every_epoch'), valid_df, test_df, le, crowd_threshold, config, model_name=version_model_name)
-            # if count == 0:
-            #     result = df
-            # else:
-            #     result = pd.concat([result, df])
-            count += 1
+            result = pd.concat([result, df])
+            print(result)
     
-    # if result != None:
-    #     result.to_csv(os.path.join(config.logging_base, f'eval_{model_prefix}.csv'), index=False, header=True)
+    result.to_csv(os.path.join(config.logging_base, f'eval_{model_prefix}.csv'), index=False, header=True)
     
         
     
@@ -58,6 +53,7 @@ def eval(model, checkpoint_path, valid_df, test_df, le, crowd_threshold, config:
         ckpt_filename = os.path.basename(ckpt_file)
         epoch_num = int(ckpt_filename[: ckpt_filename.find('-')])
         
+        print(f'Epoch {epoch_num}: Evalutate valid')
         accuracy, precision, recall, f1 = calcScore(model, valid_df, le, crowd_threshold, config, confidence=confidence)
         if model_name != None:
             model_names.append(model_name)
@@ -75,7 +71,7 @@ def eval(model, checkpoint_path, valid_df, test_df, le, crowd_threshold, config:
 
         for test_index, test_path in enumerate(config.test_paths):
             test_id = test_index + 1
-            print(f'Evalutate test{test_id}')
+            print(f'Epoch {epoch_num}: Evalutate test{test_id}')
             current_test_df = test_df[test_df['test_id'] == test_id]
 
             accuracy, precision, recall, f1 = calcScore(model, current_test_df, le, crowd_threshold, config, confidence=confidence, path=test_path)
