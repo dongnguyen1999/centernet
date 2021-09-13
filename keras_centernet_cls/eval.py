@@ -23,7 +23,7 @@ def eval_models(valid_df, test_df, le, crowd_threshold, config: Config, model_pr
         model_ckpt_paths = glob(os.path.join(config.logging_base, f'models/{model_prefix}*/'))
     # print(model_ckpt_paths)
     result = pd.DataFrame([], columns=['model_name', 'epoch', 'testset', 'accuracy', 'precision', 'recall', 'f1'])
-    for ckpt_path in model_ckpt_paths[:1]:
+    for ckpt_path in model_ckpt_paths:
         model_name = os.path.basename(ckpt_path[:-1])
         for k in model_garden:
             if k in model_name:
@@ -37,7 +37,6 @@ def eval_models(valid_df, test_df, le, crowd_threshold, config: Config, model_pr
             print(f'Evaluating model {version_model_name}')
             df = eval(model, os.path.join(version, 'every_epoch'), valid_df, test_df, le, crowd_threshold, config, model_name=version_model_name)
             result = pd.concat([result, df])
-            print(result)
     
     result.to_csv(os.path.join(config.logging_base, f'eval_{model_prefix}.csv'), index=False, header=True)
     
