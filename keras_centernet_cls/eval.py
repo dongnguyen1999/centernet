@@ -36,10 +36,10 @@ def eval_models(valid_df, test_df, le, crowd_threshold, config: Config, model_pr
             version_model_name = f'{model_name}_{version_name}'
             print(f'Evaluating model {version_model_name}')
             df = eval(model, os.path.join(version, 'every_epoch'), valid_df, test_df, le, crowd_threshold, config, model_name=version_model_name)
-            if count == 0:
-                result = df
-            else:
-                result = pd.concat([result, df])
+            # if count == 0:
+            #     result = df
+            # else:
+            #     result = pd.concat([result, df])
             count += 1
     
     # if result != None:
