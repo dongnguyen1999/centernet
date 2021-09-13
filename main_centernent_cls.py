@@ -47,7 +47,7 @@ train_df, valid_df, test_df, le = load_data(config)
 #         # plt.show()
 #         break
 
-model = create_model(config, architecture='pretrained_vgg16')
+model = create_model(config, architecture='pretrained_resnet50', freeze_feature_block=False)
 model.summary()
 
 train(model, train_df, valid_df, le, 30, config, test_df=test_df, generator=DataGenerator)
