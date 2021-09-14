@@ -50,7 +50,7 @@ def calcScore(model, valid_df, le, crowd_threshold, config,  confidence=0.5, pat
   if debug == True: print('tp, tn, fp, fn: ', tp, tn, fp, fn)
   accuracy = (tp + tn) / (tp + tn + fp + fn + 0.000001)
   precision = tp / (tp + fp + 0.000001)
-  recall = tp / (tp + tn + 0.000001)
+  recall = tp / (tp + fn + 0.000001)
   f1 = (2*precision*recall) / (precision + recall + 0.000001)
 
   return accuracy, precision, recall, f1
