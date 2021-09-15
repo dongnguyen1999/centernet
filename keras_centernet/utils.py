@@ -57,37 +57,15 @@ def heatmap(bbox, image_size, config: Config, sigma=2): # image size (h, w)
       heatmap = np.exp(-Exponent)
       return heatmap
 
-    coors = [] # list of [x, y]
-    size = sigma+1
-    y_ = size
-    while y_ > -size - 1:
-      x_ = -size
-      while x_ < size + 1:
-        coors.append([y_, x_])
-        x_ += 1
-      y_ -= 1
-
-    output_layer = np.zeros((config.output_size, config.output_size,(2*config.num_classes + 4))) 
+    output_layer = np.zeros((config.output_size, config.output_size,(2*config.num_classes))) 
 
     for box in bbox:
       u, v, w, h, label = get_coords(box)
       if w == 0 or h == 0: continue
-      # print(u, v, w, h)
-      for coor in coors:
-        try:
-          output_layer[int(v)+coor[0], int(u)+coor[1], config.num_classes] = v%1
-          output_layer[int(v)+coor[0], int(u)+coor[1], config.num_classes+1] = u%1
-          output_layer[int(v)+coor[0], int(u)+coor[1], config.num_classes+2] = h
-          output_layer[int(v)+coor[0], int(u)+coor[1], config.num_classes+3] = w
-        except:
-          pass
       heatmap = get_heatmap(u, v)
       output_layer[:,:,label] = np.maximum(output_layer[:,:,label], heatmap[:,:])
-      output_layer[int(v), int(u), config.num_classes+4 + label] = 1
+      output_layer[int(v), int(u), config.num_classes + label] = 1
 
-
-    
-    # print(hm.shape, reg.shape, wh.shape)
-  
+    # print(hm.shape, reg.shape, wh.shape)  
     return output_layer
     

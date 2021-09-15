@@ -21,14 +21,6 @@ import tensorflow.keras.backend as K
 import numpy as np
 import tensorflow as tf
 
-CTDET_COCO_WEIGHTS_PATH = (
-  'https://github.com/see--/keras-centernet/'
-  'releases/download/0.1.0/ctdet_coco_hg.hdf5')
-
-HPDET_COCO_WEIGHTS_PATH = (
-  'https://github.com/see--/keras-centernet/'
-  'releases/download/0.1.0/hpdet_coco_hg.hdf5')
-
 def normalize_image(image):
   """Normalize the image for the Hourglass network.
   # Arguments
@@ -48,16 +40,11 @@ def create_model(config: Config, num_stacks=2):
     'weights': 'ctdet_coco',
     'inres': (config.input_size, config.input_size),
   }
-  heads = {
-    'hm': config.num_classes,
-    'reg': 2,
-    'wh': 2
-  }
 
-  return HourglassNetwork(heads=heads, **kwargs)
+  return HourglassNetwork(config.num_classes, **kwargs)
 
 
-def HourglassNetwork(heads, num_stacks, cnv_dim=256, inres=(512, 512), weights='ctdet_coco',
+def HourglassNetwork(num_classes, num_stacks, cnv_dim=256, inres=(512, 512), weights='ctdet_coco',
                      dims=[256, 384, 384, 384, 512]):
   """Instantiates the Hourglass architecture.
   Optionally loads weights pre-trained on COCO.
@@ -84,13 +71,11 @@ def HourglassNetwork(heads, num_stacks, cnv_dim=256, inres=(512, 512), weights='
                      '(pre-trained on COCO), `hpdet_coco` (pre-trained on COCO) '
                      'or the path to the weights file to be loaded.')
   input_layer = Input(shape=(inres[0], inres[1], 3), name='HGInput')
-  inter = pre(input_layer, cnv_dim)
+  inter = pre(input_layer, cnv_dim, inres)
   prev_inter = None
-  outputs = []
   for i in range(num_stacks):
     prev_inter = inter
-    _heads, inter = hourglass_module(heads, inter, cnv_dim, i, dims)
-    outputs.extend(_heads)
+    hg_output, inter = hourglass_module(num_classes, inter, cnv_dim, i, dims)
     if i < num_stacks - 1:
       inter_ = Conv2D(cnv_dim, 1, use_bias=False, name='inter_.%d.0' % i)(prev_inter)
       inter_ = BatchNormalization(epsilon=1e-5, name='inter_.%d.1' % i)(inter_)
@@ -101,38 +86,15 @@ def HourglassNetwork(heads, num_stacks, cnv_dim=256, inres=(512, 512), weights='
       inter = Add(name='inters.%d.inters.add' % i)([inter_, cnv_])
       inter = Activation('relu', name='inters.%d.inters.relu' % i)(inter)
       inter = residual(inter, cnv_dim, 'inters.%d' % i)
+    else:
+      output = hg_output
+
+  model = Model(inputs=input_layer, outputs=output)
   
-  model = Model(inputs=input_layer, outputs=outputs)
-  if weights == 'ctdet_coco':
-    weights_path = get_file(
-      '%s_hg.hdf5' % weights,
-      CTDET_COCO_WEIGHTS_PATH,
-      cache_subdir='models',
-      file_hash='ce01e92f75b533e3ff8e396c76d55d97ff3ec27e99b1bdac1d7b0d6dcf5d90eb')
-    model.load_weights(weights_path, by_name=True)
-  elif weights == 'hpdet_coco':
-    weights_path = get_file(
-      '%s_hg.hdf5' % weights,
-      HPDET_COCO_WEIGHTS_PATH,
-      cache_subdir='models',
-      file_hash='5c562ee22dc383080629dae975f269d62de3a41da6fd0c821085fbee183d555d')
-    model.load_weights(weights_path, by_name=True)
-  elif weights is not None:
-    model.load_weights(weights, by_name=True)
-
-  def _decode(args):
-    hm, reg, wh = args[-3:]
-    hm = tf.sigmoid(hm)
-    reg = tf.sigmoid(reg)
-    wh = tf.nn.relu(wh)
-
-    return tf.concat([hm, reg, wh], axis=3)
-  output = Lambda(_decode)(model.outputs)
-  model = Model(model.input, output)
   return model
 
 
-def hourglass_module(heads, bottom, cnv_dim, hgid, dims):
+def hourglass_module(num_classes, bottom, cnv_dim, hgid, dims):
   # create left features , f1, f2, f4, f8, f16 and f32
   lfs = left_features(bottom, hgid, dims)
 
@@ -142,8 +104,8 @@ def hourglass_module(heads, bottom, cnv_dim, hgid, dims):
 
   # add 1x1 conv with two heads, inter is sent to next stage
   # head_parts is used for intermediate supervision
-  heads = create_heads(heads, rf1, hgid)
-  return heads, rf1
+  hg_output = create_output(num_classes, rf1, hgid)
+  return hg_output, rf1
 
 
 def convolution(_x, k, out_dim, name, stride=1):
@@ -176,9 +138,9 @@ def residual(_x, out_dim, name, stride=1):
   return _x
 
 
-def pre(_x, num_channels):
+def pre(_x, num_channels, inres):
   # front module, input to 1/4 resolution
-  _x = convolution(_x, 7, 128, name='pre.0', stride=2)
+  _x = convolution(_x, 7, inres[0]//4, name='pre.0', stride=2)
   _x = residual(_x, num_channels, name='pre.1', stride=2)
   return _x
 
@@ -231,16 +193,12 @@ def right_features(leftfeatures, hgid, dims):
   return rf
 
 
-def create_heads(heads, rf1, hgid):
-  _heads = []
-  for head in sorted(heads):
-    num_channels = heads[head]
-    _x = Conv2D(256, 3, use_bias=True, padding='same', name=head + '.%d.0.conv' % hgid)(rf1)
-    _x = Activation('relu', name=head + '.%d.0.relu' % hgid)(_x)
-    output_name = head+'.%d'%num_channels if head == 'hm' else head
-    _x = Conv2D(num_channels, 1, use_bias=True, name=output_name + '.%d.1' % hgid)(_x)
-    _heads.append(_x)
-  return _heads
+def create_output(num_classes, rf1, hgid):
+  num_channels = num_classes
+  _x = Conv2D(256, 3, use_bias=True, padding='same', name='hm.%d.0.conv' % hgid)(rf1)
+  _x = Activation('relu', name='hm.%d.0.relu' % hgid)(_x)
+  _x = Conv2D(num_channels, 1, use_bias=True, name='hm.%d.1' % hgid)(_x)
+  return _x
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ import os
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 from tensorflow.keras.utils import Sequence
+from imgaug import augmenters
 import cv2
 
 
@@ -36,6 +37,15 @@ def load_data(config: Config):
     print('Test data size: %d' % len(test_df.filename.unique()))
 
     return train_df, valid_df, test_df, le
+
+def data_augmentation():
+    sometimes = lambda x: augmenters.Sometimes(0.5, x)
+
+    augment_sequential = augmenters.Sequential([
+        augmenters.Fliplr(0.5)
+    ], random_order=False)
+
+    return augment_sequential
 
 class DataGenerator(Sequence):
     'Generates data for Keras'
@@ -91,7 +101,8 @@ class DataGenerator(Sequence):
         self.image_id = config.image_id
 
         self.num_output_layers = self.num_classes + 4 # The first n layers is heatmap for each class, 2 next layers for h-offset and w-offset, 2 last layers for h-size and w-size
-        
+        self.aug = data_augmentation()
+
         self.on_epoch_end()
 
     def __len__(self):
@@ -112,6 +123,18 @@ class DataGenerator(Sequence):
             return X
         else:
             y = self.__generate_y(list_IDs_batch)
+
+            # Apply data augmentation
+            Xs, ys = [], []
+            for i in range(len(X)):
+                img, out = X[i], y[i]
+                augX, augY = self.aug(images=[img.astype(np.float32)], heatmaps=[out.astype(np.float32)])
+                Xs.append(augX[0])
+                ys.append(augY[0])
+            
+            X = np.array(Xs)
+            y = np.array(ys)
+
             return X, y
         
     def on_epoch_end(self):
@@ -141,6 +164,7 @@ class DataGenerator(Sequence):
         output_layers = []
         for i, ID in enumerate(list_IDs_batch):
             # print(self.df)
+
             bbox = self.df[self.df[self.image_id]==ID][['x1', 'y1', 'x2', 'y2', 'label']].values
             output_layer = heatmap(bbox, (self.image_height, self.image_width), self.config)
             output_layers.append(output_layer)
