@@ -7,6 +7,6 @@ from tensorflow.keras.optimizers import Adam, SGD
 from keras.losses import mean_squared_error
 
 def compile_model(model, config: Config, alpha = 2., beta = 4.): # loss weights [hm, reg, wh]
-  opt = SGD(lr = config.lr, momentum = 0.9, nesterov = True)
+  opt = Adam(lr = config.lr)
   model.compile(loss='mse', optimizer=opt)
   return model
