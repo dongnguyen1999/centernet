@@ -198,7 +198,6 @@ def create_output(num_classes, rf1, hgid):
   _x = Conv2D(256, 3, use_bias=True, padding='same', name='hm.%d.0.conv' % hgid)(rf1)
   _x = Activation('relu', name='hm.%d.0.relu' % hgid)(_x)
   _x = Conv2D(num_channels, 1, use_bias=True, name='hm.%d.1' % hgid)(_x)
-  _x = Activation('relu', name='hm.%d.1.relu' % hgid)(_x)
   return _x
 
 
