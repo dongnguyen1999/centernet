@@ -33,8 +33,7 @@ def _ctdet_decode(hm, k=100):
     # _inds = K.cast(_inds / cat, 'int32')
     # _xs = K.cast(_inds % width, 'float32')
     # _ys = K.cast(K.cast(_inds / width, 'int32'), 'float32')
-    _count = tf.divide(_scores, 100)
-    _detection = K.stack([_count, _classes], -1)
+    _detection = K.stack([_scores, _classes], -1)
     return _detection
 
   detections = K.map_fn(_process_sample, [hm_flat], dtype=K.floatx())

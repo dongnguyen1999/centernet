@@ -64,8 +64,6 @@ def heatmap(bbox, image_size, config: Config, sigma=2): # image size (h, w)
       if w == 0 or h == 0: continue
       heatmap = get_heatmap(u, v)
 
-      heatmap *= 100
-
       output_layer[:,:,label] = np.maximum(output_layer[:,:,label], heatmap[:,:])
 
     # print(hm.shape, reg.shape, wh.shape)  
