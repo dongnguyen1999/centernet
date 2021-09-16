@@ -57,7 +57,7 @@ def heatmap(bbox, image_size, config: Config, sigma=2): # image size (h, w)
       heatmap = np.exp(-Exponent)
       return heatmap
 
-    output_layer = np.zeros((config.output_size, config.output_size,(config.num_classes))) 
+    output_layer = np.zeros((config.output_size, config.output_size,(2*config.num_classes))) 
 
     for box in bbox:
       u, v, w, h, label = get_coords(box)
@@ -65,6 +65,7 @@ def heatmap(bbox, image_size, config: Config, sigma=2): # image size (h, w)
       heatmap = get_heatmap(u, v)
 
       output_layer[:,:,label] = np.maximum(output_layer[:,:,label], heatmap[:,:])
+      output_layer[int(v), int(u), config.num_classes + label] = 1
 
     # print(hm.shape, reg.shape, wh.shape)  
     return output_layer
