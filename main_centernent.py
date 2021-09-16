@@ -1,10 +1,10 @@
-# from keras_centernet.models.decode import ClassificationDecode
-# from keras_centernet.train import train
-from keras_centernet.train import train
-from keras_centernet.models.hourglass import create_model
-from keras_centernet.models.decode import CountDecode, _ctdet_decode, visualize
-from keras_centernet.losses import compile_model
-from keras_centernet.dataset.vn_vehicle import data_augmentation, load_data, DataGenerator
+# from keras_centernet_count.models.decode import ClassificationDecode
+# from keras_centernet_count.train import train
+from keras_centernet_count.train import train
+from keras_centernet_count.models.hourglass import create_model
+from keras_centernet_count.models.decode import CountDecode, _ctdet_decode, visualize
+from keras_centernet_count.losses import compile_model
+from keras_centernet_count.dataset.vn_vehicle import data_augmentation, load_data, DataGenerator
 from utils.config import Config
 import pandas as pd
 import numpy as np
@@ -44,19 +44,24 @@ train_df, valid_df, test_df, le = load_data(config)
 # X, Y = data_gen.__getitem__(1)
 # Y_pred = Y[:,:,:,: config.num_classes]
 
+# out = _ctdet_decode(Y_pred)
 
 
 # print(X.shape, Y_pred.shape)
 
 # aug = data_augmentation()
 # augX, augY = aug(images=[X[0].astype(np.float32)], heatmaps=[Y[0].astype(np.float32)])
-# print(len(augX))
+# print(len(augX)
+# )
+
+# print(np.min(Y_pred[0][..., 0]))
+# print(np.max(Y_pred[0][..., 0]))
 
 # img = cv2.resize(X[0], (config.output_size,config.output_size))
 
 # plt.imshow(img)
 # plt.imshow(img)
-# plt.imshow(Y_pred[0][..., 0], alpha=0.5)
+# plt.imshow(Y_pred[0][..., 0], alpha=0.8)
 
 # plt.show()
 
