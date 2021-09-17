@@ -172,7 +172,8 @@ class DataGenerator(Sequence):
             image_aug, bbs_aug = self.aug(image=img, bounding_boxes=bbs)
 
             bbox = []
-            for box in bbs_aug:
+            for i in range(len(bbs_aug)):
+                box = bbs_aug[i]
                 bbox.append([box.x1, box.y1, box.x2, box.y2, box.label])
 
             img = cv2.resize(image_aug, (self.input_size, self.input_size))
