@@ -1,5 +1,6 @@
 # from keras_centernet_count.models.decode import ClassificationDecode
 # from keras_centernet_count.train import train
+from keras_centernet_count.eval import eval_models
 from keras_centernet_count.train import train
 from keras_centernet_count.models.hourglass import create_model
 from keras_centernet_count.models.decode import CountDecode, _ctdet_decode, visualize
@@ -84,7 +85,15 @@ model.summary()
 # print(y)
 
 
-train(model, train_df, valid_df, config, test_df=test_df, generator=DataGenerator)
+# train(model, train_df, valid_df, config, test_df=test_df, generator=DataGenerator)
+
+eval_models(valid_df, test_df, config, model_prefix='centernet_count_hg', 
+    model_garden={
+        '1stack': create_model(config, 1),
+        '2stack': create_model(config, 2),
+    }
+)
+
 
 # maes = calcmAP(model, valid_df, config, confidences=[0.25, 0.5, 0.7])
 

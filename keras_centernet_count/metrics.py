@@ -57,6 +57,56 @@ def calcMae(model, valid_df, config: Config, path=None):
   maes = np.array(maes) #mae /class
   return maes
 
+def calcMaeV0(model, valid_df, config: Config, confidences=[0.25, 0.5, 0.7], path=None):
+  model_ = CountDecode(model)
+  
+  image_ids = valid_df[config.image_id].unique()
+
+  y_true = []
+  y_preds = [[] for _ in confidences]
+
+  # for idx in trange(1):
+  for idx in trange(len(image_ids)):
+    image_id = image_ids[idx]
+    img_name = os.path.basename(image_id)
+    img_path = config.valid_path if path == None else path
+    img = cv2.cvtColor(cv2.imread(os.path.join(img_path, img_name)), cv2.COLOR_BGR2RGB)
+    im_h, im_w = img.shape[:2]
+    img = normalize_image(img)
+    img = cv2.resize(img, (config.input_size, config.input_size))
+
+    boxes = valid_df[valid_df[config.image_id]==image_id]
+
+    true_counts = []
+    for i in range(config.num_classes):
+      count = boxes[boxes['label'] == i].label.count()
+      true_counts.append(count)
+
+    true_counts = np.array(true_counts)
+    y_true.append(true_counts)
+
+    out = model_.predict(img[None])
+
+    for conf_idx, confidence in enumerate(confidences):
+      pred_counts = np.array([0,0,0])
+      for detection in out[0]:
+        conf, label = detection
+        if conf > confidence:
+          pred_counts[int(label)] += 1
+      y_preds[conf_idx].append(pred_counts)
+
+  y_true = np.array(y_true)
+  y_preds = [np.array(y_pred) for y_pred in y_preds]
+
+  conf_maes = []
+  for y_pred in y_preds:
+    class_maes = []
+    for i in range(config.num_classes):
+      class_maes.append(mean_absolute_error(y_true[:, i], y_pred[:, i]))
+    conf_maes.append(class_maes)
+  conf_maes = np.array(conf_maes) #mae /conf /class
+  return conf_maes
+
 class SaveBestMae(Callback):
   def __init__(self, config: Config, path, valid_df):
     super(SaveBestMae, self).__init__()
