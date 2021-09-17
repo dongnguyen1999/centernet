@@ -19,7 +19,7 @@ def _nms(heat, kernel=3):
 
 
 def _ctdet_decode(hm, k=100):
-  # hm = K.sigmoid(hm)
+  hm = K.sigmoid(hm)
   hm = _nms(hm)
   hm_shape = K.shape(hm)
   batch, cat = hm_shape[0], hm_shape[3]
