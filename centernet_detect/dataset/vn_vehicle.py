@@ -116,7 +116,7 @@ class DataGenerator(Sequence):
         'Generate one batch of data'
         if self.steps_factor < 0.5:
             self.on_epoch_end()
-            
+
         # Generate indexes of the batch
         indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
 
@@ -165,21 +165,22 @@ class DataGenerator(Sequence):
 
             # print(self.df)
             bbox = self.df[self.df[self.image_id]==ID][['x1', 'y1', 'x2', 'y2', 'label']].values
-            bbslist = []
+
+            # bbslist = []
             
-            for box in bbox:
-                x1, y1, x2, y2, label = box
-                bbslist.append(BoundingBox(x1=x1, y1=y1, x2=x2, y2=y2, label=label))
+            # for box in bbox:
+            #     x1, y1, x2, y2, label = box
+            #     bbslist.append(BoundingBox(x1=x1, y1=y1, x2=x2, y2=y2, label=label))
 
-            bbs = BoundingBoxesOnImage(bbslist, shape=img.shape)
+            # bbs = BoundingBoxesOnImage(bbslist, shape=img.shape)
 
-            image_aug, bbs_aug = self.aug(image=img, bounding_boxes=bbs)
+            # image_aug, bbs_aug = self.aug(image=img, bounding_boxes=bbs)
 
-            bbox = []
-            for box in bbs_aug:
-                bbox.append([box.x1, box.y1, box.x2, box.y2, box.label])
+            # bbox = []
+            # for box in bbs_aug:
+            #     bbox.append([box.x1, box.y1, box.x2, box.y2, box.label])
 
-            img = cv2.resize(image_aug, (self.input_size, self.input_size))
+            img = cv2.resize(img, (self.input_size, self.input_size))
             X.append(img)
 
             hm, reg, wh = heatmap(bbox, (self.image_height, self.image_width), self.config)
