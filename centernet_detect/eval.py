@@ -19,7 +19,7 @@ import shutil
 
 #####TRAIN##########
 
-def eval_models(valid_df, test_df, config: Config, model_prefix=None, eval_category='every_epoch', model_ckpt_paths=[], model_garden={}, confidence=0.2, threshold=0.5):
+def eval_models(valid_df, test_df, config: Config, model_prefix=None, eval_category='every_epoch', model_ckpt_paths=[], model_garden={}, confidence=0, threshold=0.5):
 
     if model_prefix != None:
         model_ckpt_paths = glob(os.path.join(config.logging_base, 'models', f'{model_prefix}*/'))
@@ -41,7 +41,7 @@ def eval_models(valid_df, test_df, config: Config, model_prefix=None, eval_categ
     
         
     
-def eval_model(model, checkpoint_path, valid_df, test_df, config: Config, confidence=0.25, threshold=0.5, model_name=None):
+def eval_model(model, checkpoint_path, valid_df, test_df, config: Config, confidence, threshold, model_name=None):
 
     ckpt_weights_files = glob(os.path.join(checkpoint_path, '*.hdf5'))
 
@@ -60,7 +60,7 @@ def eval_model(model, checkpoint_path, valid_df, test_df, config: Config, confid
             eval(model, f'{model_name}_epoch{epoch_num}', current_test_df, f'test{test_id}', config, confidence=confidence, iou_threshold=threshold, test_path=test_path)
 
     
-def eval(model, model_name, test_df, testset_name, config: Config, confidence=0.2, iou_threshold=0.5, test_path=None):
+def eval(model, model_name, test_df, testset_name, config: Config, confidence, iou_threshold, test_path=None):
     model_ = CtDetDecode(model)
     image_ids = test_df[config.image_id].unique()
     save_path = os.path.join(config.logging_base, 'eval', f'{model_name}_{testset_name}_conf{confidence}_iou{iou_threshold}')

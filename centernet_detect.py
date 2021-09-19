@@ -101,7 +101,6 @@ train_df, valid_df, test_df, le = load_data(config)
 
 eval_models(valid_df, test_df, config, model_prefix='centernet_detect_hg', 
     eval_category='every_epoch',
-    confidence=0.1,
     threshold=0.5,
     model_garden={
         '1stack': create_model(config, 1),
