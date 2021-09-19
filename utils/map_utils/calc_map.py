@@ -6,6 +6,7 @@ import operator
 import sys
 import argparse
 import math
+from tqdm.std import trange
 
 import numpy as np
 
@@ -21,7 +22,7 @@ import numpy as np
                 (Right,Bottom)
 '''
 
-def calc_map(eval_result_path, image_path=None, iou_threshold=0.5, plot_result=True, ignore_classes=[]):
+def calc_map(eval_result_path, image_path=None, iou_threshold=0.5, plot_result=True, ignore_classes=[], temp_path=".temp_files"):
 
     # make sure that the cwd() is the location of the python script (so that every path makes sense)
     MINOVERLAP = iou_threshold # default value (defined in the PASCAL VOC2012 challenge)
@@ -315,7 +316,7 @@ def calc_map(eval_result_path, image_path=None, iou_threshold=0.5, plot_result=T
     """
     Create a ".temp_files/" and "output/" directory
     """
-    TEMP_FILES_PATH = ".temp_files"
+    TEMP_FILES_PATH = temp_path
     if not os.path.exists(TEMP_FILES_PATH): # if it doesn't exist already
         os.makedirs(TEMP_FILES_PATH)
     output_files_path = os.path.join(eval_result_path, "output") 
@@ -480,7 +481,8 @@ def calc_map(eval_result_path, image_path=None, iou_threshold=0.5, plot_result=T
             nd = len(dr_data)
             tp = [0] * nd # creates an array of zeros of size nd
             fp = [0] * nd
-            for idx, detection in enumerate(dr_data):
+            for idx in trange(len(dr_data)):
+                detection = dr_data[idx]
                 file_id = detection["file_id"]
                 if show_animation:
                     # find ground truth image
@@ -604,7 +606,7 @@ def calc_map(eval_result_path, image_path=None, iou_threshold=0.5, plot_result=T
                     cv2.rectangle(img_cumulative,(bb[0],bb[1]),(bb[2],bb[3]),color,2)
                     cv2.putText(img_cumulative, class_name, (bb[0],bb[1] - 5), font, 0.6, color, 1, cv2.LINE_AA)
                     # show image
-                    cv2.imshow("Animation", img)
+                    # cv2.imshow("Animation", img)
                     cv2.waitKey(20) # show for 20 ms
                     # save image to output
                     # output_img_path = output_files_path + "/images/detections_one_by_one/" + class_name + "_detection" + str(idx) + ".jpg"

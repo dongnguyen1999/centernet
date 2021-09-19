@@ -68,7 +68,7 @@ def eval(model, model_name, test_df, testset_name, config: Config, confidence=0.
         shutil.rmtree(save_path)
     gt_path = os.path.join(save_path, 'input', 'ground-truth')
     dt_path = os.path.join(save_path, 'input', 'detection-results')
-    tem_img_path = os.path.join(config.logging_base, 'eval', testset_name)
+    tem_img_path = os.path.join(config.data_base, 'eval', testset_name)
     save_tem_img = False
     if not os.path.exists(tem_img_path):
         os.makedirs(tem_img_path)
@@ -122,6 +122,6 @@ def eval(model, model_name, test_df, testset_name, config: Config, confidence=0.
         ground_truths.to_csv(os.path.join(gt_path, f'{img_name[:-4]}.txt'), index=False, header=False, sep=' ')
         # print(boxes, pred_box)
 
-    calc_map(save_path, tem_img_path, iou_threshold)
+    calc_map(save_path, tem_img_path, iou_threshold, temp_path=os.path.join(config.data_base, 'eval', '.temp_files'))
   
     
