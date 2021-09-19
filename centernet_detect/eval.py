@@ -85,6 +85,7 @@ def eval(model, model_name, test_df, testset_name, config: Config, confidence=0.
         image_id = image_ids[idx]
         img_name = os.path.basename(image_id)
         img_path = config.valid_path if test_path == None else test_path
+        print(os.path.join(img_path, img_name))
         img = cv2.cvtColor(cv2.imread(os.path.join(img_path, img_name)), cv2.COLOR_BGR2RGB)
         im_h, im_w = img.shape[:2]
 
