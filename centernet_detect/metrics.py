@@ -109,49 +109,6 @@ def calculate_precision(preds_sorted, gt_boxes, num_classes, threshold=0.5):
   cl_precision = cl_tp / ((cl_tp + cl_fp + cl_fn) + 0.0000001)
   return precision, cl_precision, fp_boxes, gt_boxes
 
-def calculate_tp_fp_fn(gt_boxes, preds_sorted, num_classes, iou_threshold=0.5):
-  """Calculates precision per at one threshold.
-  
-  Args:
-    preds_sorted: 
-  """
-  tp = 0
-  fp = 0
-  fn = 0
-
-  cl_tp, cl_fn, cl_fp = np.array([0 for _ in range(num_classes)]), np.array([0 for _ in range(num_classes)]), np.array([0 for _ in range(num_classes)])
-
-  fp_boxes = []
-
-  for pred_idx, pred in enumerate(preds_sorted):
-    best_match_gt_idx = find_best_match(gt_boxes, pred, threshold=threshold)
-
-    if best_match_gt_idx >= 0:
-      # True positive: The predicted box matches a gt box with an IoU above the threshold.
-      tp += 1
-      _, _, _, _, label = gt_boxes[best_match_gt_idx]
-      cl_tp[label] += 1
-      # Remove the matched GT box
-      gt_boxes = np.delete(gt_boxes, best_match_gt_idx, axis=0)
-
-    else:
-      # No match
-      # False positive: indicates a predicted box had no associated gt box.
-      fp += 1
-      _, _, _, _, label = pred
-      cl_fp[label] += 1
-      fp_boxes.append(pred)
-
-  # False negative: indicates a gt box had no associated predicted box.
-  fn = len(gt_boxes)
-  for gtb in gt_boxes:
-    _, _, _, _, label = gtb
-    cl_fn[label] += 1
-
-  precision = tp / (tp + fp + fn + 0.0000001)
-  cl_precision = cl_tp / ((cl_tp + cl_fp + cl_fn) + 0.0000001)
-  return precision, cl_precision, fp_boxes, gt_boxes
-
 def calculate_image_precision(preds_sorted, gt_boxes, num_classes, thresholds=(0.5), debug=False):
   
   n_threshold = len(thresholds)
@@ -176,15 +133,7 @@ def calculate_image_precision(preds_sorted, gt_boxes, num_classes, thresholds=(0
   
   return image_precision, np.array(threshold_precision), image_cl_precision, np.array(threshold_cl_precision)
 
-def count_image_detections(gt_boxes, pred_boxes, iou_thresholds):
-  conf_thresholds = [x for x in np.arange(0, 1, 0.1)]
-
-  for threshold in iou_thresholds:
-    for conf in conf_thresholds:
-      print()
-  return
-
-def calcmAPV0(model, valid_df, config: Config, confidence=0.5, thresholds=np.arange(0.5, 0.76, 0.05), path=None):
+def calcmAP(model, valid_df, config: Config, confidence=0.5, thresholds=np.arange(0.5, 0.76, 0.05), path=None):
   model_ = CtDetDecode(model, config.num_classes)
   
   iou_thresholds = [x for x in thresholds]
@@ -248,149 +197,9 @@ def calcmAPV0(model, valid_df, config: Config, confidence=0.5, thresholds=np.ara
   cl_precision = np.array(cl_precision)
   return np.mean(precision), (threshold_precisions / countN), np.mean(cl_precision, axis=0), (threshold_cl_precisions / countN)
 
-def iou(box1, box2):
-  xt1, yt1, xt2, yt2 = box1
-  xp1, yp1, xp2, yp2 = box2
-
-  overlap_area = 0.0
-  union_area = 0.0
-
-  # Calculate overlap area
-  dx = min(xt2, xp2) - max(xt1, xp1)
-  dy = min(yt2, yp2) - max(yt1, yp1)
-
-  if (dx > 0) and (dy > 0):
-    overlap_area = dx * dy
-
-  # Calculate union area
-  union_area = (
-    (xt2 - xt1) * (yt2 - yt1) +
-    (xp2 - xp1) * (yp2 - yp1) -
-    overlap_area
-  )
-
-  return overlap_area / union_area
-
-def find_best_matched_ground_truth(detection, ground_truths, threshold):
-  image_id, x1, y1, x2, y2, pred_label, conf = detection[['image_id', 'x1', 'y1', 'x2', 'y2', 'label', 'conf']].values
-  search_space = ground_truths[(ground_truths['image_id'] == image_id) & (ground_truths['label'] == pred_label)]
-  best_index = -1
-  best_iou = -1
-  for index, ground_truth in search_space.iterrows():
-    iou_value = iou([x1, x2, y1, y2], ground_truth[['x1', 'y1', 'x2', 'y2']].values)
-    if iou_value < threshold:
-      continue
-
-    if iou_value > best_iou:
-      best_iou = iou_value
-      best_index = index
-
-  return best_index
-
-
-def calculate_ap(ground_truths, detections, threshold, label=None):# ground_truths: image_id, x1, y1, x2, y2, label; detections: image_id, x1, y1, x2, y2, label, conf
-  if label != None:
-    ground_truths = ground_truths[ground_truths['label'] == label]
-    detections = detections[detections['label'] == label]
-  
-  curve = []
-  detections = detections.sort_values(by=['conf'], ascending=False)
-  sum_tp = 0
-  sum_fp = 0
-  all_ground_truth = len(ground_truths)
-
-  for index, detection in detections.iterrows():
-    best_matched_idx = find_best_matched_ground_truth(detection, ground_truths, threshold)
-    if best_matched_idx >= 0:
-      # tp
-      sum_tp += 1
-    else:
-      # fp
-      sum_fp += 1
-    
-    prec = sum_tp / (sum_tp + sum_fp)
-    rec = sum_tp / all_ground_truth
-    curve.append([prec, rec])
-
-  ap = 0.0
-  curve = pd.DataFrame(curve, columns=['prec', 'rec'])
-  curve = curve.sort_values(by=['rec'], ascending=True)
-  prev_rec = 0.0
-  while len(curve) > 0:    
-    max_prec_row = curve.iloc[curve['prec'].argmax()]
-    ap += max_prec_row['prec'] * (max_prec_row['rec'] - prev_rec)
-    prev_rec = max_prec_row['rec']
-    curve = curve[curve['rec'] > prev_rec]
-  
-  return ap
-
-def calcmAP(model, valid_df, config: Config, confidence=0.2, thresholds=(0.5, 0.7), path=None):
-  model_ = CtDetDecode(model)
-  
-  iou_thresholds = [x for x in thresholds]
-
-  image_ids = valid_df[config.image_id].unique()
-
-  ground_truths = []
-  detections = []
-
-  for idx in trange(len(image_ids)):
-    image_id = image_ids[idx]
-    img_name = os.path.basename(image_id)
-    img_path = config.valid_path if path == None else path
-    img = cv2.cvtColor(cv2.imread(os.path.join(img_path, img_name)), cv2.COLOR_BGR2RGB)
-    im_h, im_w = img.shape[:2]
-    img = normalize_image(img)
-    img = cv2.resize(img, (config.input_size, config.input_size))
-
-    boxes = valid_df[valid_df[config.image_id]==image_id]
-
-    boxes.x1 = np.floor(boxes.x1 * config.input_size / im_w)
-    boxes.y1 = np.floor(boxes.y1 * config.input_size / im_h)
-    boxes.x2 = np.floor(boxes.x2 * config.input_size / im_w)
-    boxes.y2 = np.floor(boxes.y2 * config.input_size / im_h)
-
-    boxes = boxes[['x1', 'y1', 'x2', 'y2', 'label']].values
-    boxes = boxes.astype('int32')
-
-    out = model_.predict(img[None])
-    
-    for detection in out[0]:
-      x1, y1, x2, y2, conf, label = detection
-      if conf >= confidence:
-        detections.append([image_id, x1, y1, x2, y2, label, conf])
-
-    for box in boxes:
-      x1, y1, x2, y2, label = box
-      ground_truths.append([image_id, x1, y1, x2, y2, label])
-
-      
-
-    # print(boxes, pred_box)
-
-    # preds_sorted_idx = np.argsort(scores)[::-1]
-    # preds_sorted = pred_box[preds_sorted_idx]
-  ground_truths = pd.DataFrame(ground_truths, columns=['image_id', 'x1', 'y1', 'x2', 'y2', 'label'])
-  detections = pd.DataFrame(detections, columns=['image_id', 'x1', 'y1', 'x2', 'y2', 'label', 'conf'])
-
-  average_precisions = []
-  for threshold in iou_thresholds:
-    cl_aps = []
-    for cl in range(config.num_classes):
-      cl_aps.append(calculate_ap(ground_truths, detections, threshold, label=cl))
-    average_precisions.append(cl_aps)
-
-  coco_aps = []
-  for threshold in np.arange(0.5, 0.96, 0.05):
-    coco_aps.append(calculate_ap(ground_truths, detections, threshold))
-  
-  average_precisions = np.array(average_precisions)
-  coco_aps = np.array(coco_aps)
-  return np.mean(coco_aps), np.mean(average_precisions, axis=0), average_precisions
-
-class SaveBestmAPV0(Callback):
+class SaveBestmAP(Callback):
   def __init__(self, config: Config, path, valid_df, confidence=0.25, thresholds=np.arange(0.5, 0.76, 0.05)):
-    super(SaveBestmAPV0, self).__init__()
+    super(SaveBestmAP, self).__init__()
     self.config = config
     self.best_weights = None
     self.path = path
@@ -415,35 +224,9 @@ class SaveBestmAPV0(Callback):
   def on_train_end(self, logs=None):
     print('Training ended, the best map weight is at epoch %02d with map %.3f' % (self.best_epoch, self.best))
 
-class SaveBestmAP(Callback):
-  def __init__(self, config: Config, path, valid_df, thresholds=(0.5, 0.7)):
-    super(SaveBestmAP, self).__init__()
-    self.config = config
-    self.best_weights = None
-    self.path = path
-    self.thresholds = thresholds
-    self.valid_df = valid_df
-
-  def on_train_begin(self, logs=None):
-    self.best = 0
-    self.best_epoch = 0
-
-  def on_epoch_end(self, epoch, logs=None):
-    current, _, _ = calcmAP(self.model, self.valid_df, self.config, thresholds=self.thresholds)
-    print('Current mAP: %.4f' % current)
-    if np.greater(current, self.best):
-      self.best = current
-      self.best_epoch = epoch
-      self.best_weights = self.model.get_weights()
-      print('Best mAP: %.4f, saving model to %s' % (current, os.path.join(self.path, '{epoch:02d}-{map:.3f}.hdf5'.format(epoch=epoch, map=current))))
-      self.model.save_weights(os.path.join(self.path, '{epoch:02d}-{map:.3f}.hdf5'.format(epoch=epoch, map=current)))
-  
-  def on_train_end(self, logs=None):
-    print('Training ended, the best map weight is at epoch %02d with map %.3f' % (self.best_epoch, self.best))
-
-class TestmAPV0(Callback):
+class TestmAP(Callback):
   def __init__(self, config: Config, path, valid_df, test_df, confidence=0.25, thresholds=np.arange(0.5, 0.76, 0.05)):
-    super(TestmAPV0, self).__init__()
+    super(TestmAP, self).__init__()
     self.config = config
     self.path = path
     self.thresholds = thresholds
@@ -497,75 +280,6 @@ class TestmAPV0(Callback):
         for index, iou in enumerate(thresholds):
           # print('mAP@%.2f_class%d: %.4f' % (iou, cl, th_cl_maps[index, cl]))
           r.append(th_cl_maps[index, cl])
-          
-      print('test%s mAP: %.4f' % (test_id, current))
-      rdf.append(r)
-
-    print('Saving...')
-    rdf = pd.DataFrame(rdf, columns=columns)
-    rdf.to_csv(os.path.join(self.path, 'map-epoch{epoch:02d}.csv'.format(epoch=epoch)), index=False, header=True)
-    if len(self.df) == 0:
-      self.df = rdf
-    else:
-      self.df = pd.concat([self.df, rdf])
-
-  def on_train_end(self, logs=None):
-    print('Training ended, Saving result')  
-    self.df.to_csv(os.path.join(self.path, 'map-test.csv'), index=False, header=True)
-
-
-class TestmAP(Callback):
-  def __init__(self, config: Config, path, valid_df, test_df, thresholds=(0.5, 0.7)):
-    super(TestmAP, self).__init__()
-    self.config = config
-    self.path = path
-    self.thresholds = thresholds
-    self.test_df = test_df
-    self.valid_df = valid_df
-    self.test_paths = config.test_paths
-    self.num_classes = config.num_classes
-    self.df = pd.DataFrame([])
-
-  def on_epoch_end(self, epoch, logs=None):
-    rdf = []
-    columns = []
-    thresholds = [x for x in self.thresholds]
-    
-    print(f'Evalutate valid')
-    current, th_maps, th_cl_maps = calcmAP(self.model, self.valid_df, self.config, thresholds=self.thresholds)
-    r = [f'valid', epoch, current]
-    names = ['test_id', 'epoch', 'mAP']
-    for index, iou in enumerate(thresholds):
-      print('mAP@%.2f: %.4f' % (iou, th_maps[index]))
-      r.append(th_maps[index])
-      names.append('mAP@%.2f' % iou)
-
-      ms = ""
-      for cl in range(self.num_classes):
-        ms += 'AP@%.2f_class%d: %.4f; ' % (iou, cl, th_cl_maps[index, cl])
-        r.append(th_cl_maps[index, cl])
-        names.append('AP@%.2f_class%d' % (iou, cl))
-      print(ms)
-      
-      
-    print('valid mAP: %.4f' % current)
-    rdf.append(r)
-    columns = names
-
-    for test_index, test_path in enumerate(self.test_paths):
-      test_id = test_index + 1
-      print(f'Evalutate test{test_id}')
-      test_df = self.test_df[self.test_df['test_id'] == test_id]
-      current, th_maps, th_cl_maps = calcmAP(self.model, test_df, self.config, path=test_path, thresholds=self.thresholds)
-      r = [f'test{test_id}', epoch, current]
-      for index, iou in enumerate(thresholds):
-        print('mAP@%.2f: %.4f' % (iou, th_maps[index]))
-        r.append(th_maps[index])
-        ms = ""
-        for cl in range(self.num_classes):
-          ms += 'AP@%.2f_class%d: %.4f; ' % (iou, cl, th_cl_maps[index, cl])
-          r.append(th_cl_maps[index, cl])
-        print(ms)
           
       print('test%s mAP: %.4f' % (test_id, current))
       rdf.append(r)

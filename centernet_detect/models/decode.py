@@ -62,7 +62,7 @@ def _ctdet_decode(hm, reg, wh, k=100, output_stride=4):
   return detections
 
 
-def CtDetDecode(model, k=100,output_stride=4):
+def CtDetDecode(model, num_classes, k=100,output_stride=4):
   def _decode(args):
     hm, reg, wh = args
     return _ctdet_decode(hm, reg, wh, k=k, output_stride=output_stride)
