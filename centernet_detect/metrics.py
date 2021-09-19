@@ -134,7 +134,7 @@ def calculate_image_precision(preds_sorted, gt_boxes, num_classes, thresholds=(0
   return image_precision, np.array(threshold_precision), image_cl_precision, np.array(threshold_cl_precision)
 
 def calcmAP(model, valid_df, config: Config, confidence=0.5, thresholds=np.arange(0.5, 0.76, 0.05), path=None):
-  model_ = CtDetDecode(model, config.num_classes)
+  model_ = CtDetDecode(model)
   
   iou_thresholds = [x for x in thresholds]
   

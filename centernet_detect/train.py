@@ -1,12 +1,10 @@
 from centernet_detect.losses import compile_model
 from centernet_detect.dataset.vn_vehicle import DataGenerator
 from utils.config import Config
-from models.centernet import create_model
 from tensorflow.keras.losses import binary_crossentropy
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, ReduceLROnPlateau,LearningRateScheduler
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 from tensorflow.keras.callbacks import CSVLogger
-from utils.loss_functions import CenterNetLosses
 from centernet_detect.metrics import SaveBestmAP, TestmAP
 import os
 import numpy as np

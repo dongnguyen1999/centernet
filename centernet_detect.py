@@ -1,6 +1,7 @@
 # from keras_centernet_count.models.decode import ClassificationDecode
 # from keras_centernet_count.train import train
 # from centernet_detect.eval import eval_models
+from utils.map_utils.calc_map import calc_map
 from centernet_detect.train import train
 from centernet_detect.models.hourglass import create_model
 from centernet_detect.models.decode import _ctdet_decode, visualize
@@ -17,6 +18,7 @@ from sklearn.model_selection import train_test_split
 import sklearn.metrics
 import keras
 from keras.callbacks import Callback, ModelCheckpoint
+from centernet_detect.eval import eval, eval_models
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -72,8 +74,8 @@ train_df, valid_df, test_df, le = load_data(config)
 # plt.show()
 
 
-model = create_model(config, 1)
-model.summary()
+# model = create_model(config, 1)
+# model.summary()
 # model = CountDecode(model)
 # y = model.predict(X)
 
@@ -95,14 +97,17 @@ model.summary()
 # print(y)
 
 
-train(model, train_df, valid_df, config, test_df=test_df, generator=DataGenerator)
+# train(model, train_df, valid_df, config, test_df=test_df, generator=DataGenerator)
 
-# eval_models(valid_df, test_df, config, model_prefix='centernet_count_hg', 
-#     model_garden={
-#         '1stack': create_model(config, 1),
-#         '2stack': create_model(config, 2),
-#     }
-# )
+eval_models(valid_df, test_df, config, model_prefix='centernet_detect_hg', 
+    eval_category='every_epoch',
+    confidence=0.1,
+    threshold=0.5,
+    model_garden={
+        '1stack': create_model(config, 1),
+        '2stack': create_model(config, 2),
+    }
+)
 
 
 # maes = calcmAP(model, valid_df, config, confidences=[0.25, 0.5, 0.7])

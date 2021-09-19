@@ -8,7 +8,7 @@
             "name": "Python: Main File",
             "type": "python",
             "request": "launch",
-            "program": "utils/map_utils/main.py",
+            "program": "centernet_detect.py",
             "console": "integratedTerminal"
         }
     ]
