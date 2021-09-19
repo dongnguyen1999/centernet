@@ -97,7 +97,7 @@ train_df, valid_df, test_df, le = load_data(config)
 # print(y)
 
 
-# train(model, train_df, valid_df, config, test_df=test_df, generator=DataGenerator)
+# train(model, train_df, valid_df, config, generator=DataGenerator)
 
 eval_models(valid_df, test_df, config, model_prefix='centernet_detect_hg', 
     eval_category='every_epoch',

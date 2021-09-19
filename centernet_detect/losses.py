@@ -6,7 +6,7 @@ from utils.config import Config
 from tensorflow.keras.optimizers import Adam
 from keras.losses import mean_squared_error
 
-def compile_model(model, config: Config, loss_weights=[1, 1, 5], alpha = 2., beta = 4.): # loss weights [hm, reg, wh]
+def compile_model(model, config: Config, loss_weights=[1, 1, 0.1], alpha = 2., beta = 4.): # loss weights [hm, reg, wh]
 
   def size_loss(y_true, y_pred):
     mask = y_true[..., 2]
