@@ -103,15 +103,20 @@ class DataGenerator(Sequence):
         self.aug = data_augmentation()
 
         self.num_output_layers = self.num_classes + 4 # The first n layers is heatmap for each class, 2 next layers for h-offset and w-offset, 2 last layers for h-size and w-size
-        
+        self.steps_factor = config.steps_factor if self.mode == 'fit' and config.steps_factor != None else 1
+
+        np.random.seed(self.random_state)
         self.on_epoch_end()
 
     def __len__(self):
         'Denotes the number of batches per epoch'
-        return int(np.floor(len(self.list_IDs) / self.batch_size))
+        return int(np.floor(len(self.list_IDs) * self.steps_factor/ self.batch_size))
 
     def __getitem__(self, index):
         'Generate one batch of data'
+        if self.steps_factor < 0.5:
+            self.on_epoch_end()
+            
         # Generate indexes of the batch
         indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
 
@@ -130,7 +135,6 @@ class DataGenerator(Sequence):
         'Updates indexes after each epoch'
         self.indexes = np.arange(len(self.list_IDs))
         if self.shuffle == True:
-            np.random.seed(self.random_state)
             np.random.shuffle(self.indexes)
     
     def __generate_X(self, list_IDs_batch):
