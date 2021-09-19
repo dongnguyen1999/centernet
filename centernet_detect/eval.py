@@ -57,13 +57,13 @@ def eval_model(model, checkpoint_path, valid_df, test_df, config: Config, confid
             test_id = test_index + 1
             print(f'Epoch {epoch_num}: Evalutate test{test_id}')
             current_test_df = test_df[test_df['test_id'] == test_id]
-            eval(model, f'{model_name}_epoch{epoch_num}', current_test_df, f'test{test_id}', config, confidence=confidence, iou_threshold=threshold)
+            eval(model, f'{model_name}_epoch{epoch_num}', current_test_df, f'test{test_id}', config, confidence=confidence, iou_threshold=threshold, test_path=test_path)
 
     
 def eval(model, model_name, test_df, testset_name, config: Config, confidence=0.2, iou_threshold=0.5, test_path=None):
     model_ = CtDetDecode(model)
     image_ids = test_df[config.image_id].unique()
-    save_path = os.path.join(config.logging_base, 'eval', f'{model_name}_{testset_name}')
+    save_path = os.path.join(config.logging_base, 'eval', f'{model_name}_{testset_name}_conf{confidence}_iou{iou_threshold}')
     if os.path.exists(save_path):
         shutil.rmtree(save_path)
     gt_path = os.path.join(save_path, 'input', 'ground-truth')
@@ -85,7 +85,7 @@ def eval(model, model_name, test_df, testset_name, config: Config, confidence=0.
         image_id = image_ids[idx]
         img_name = os.path.basename(image_id)
         img_path = config.valid_path if test_path == None else test_path
-        print(os.path.join(img_path, img_name))
+        
         img = cv2.cvtColor(cv2.imread(os.path.join(img_path, img_name)), cv2.COLOR_BGR2RGB)
         im_h, im_w = img.shape[:2]
 
