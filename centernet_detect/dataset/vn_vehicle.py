@@ -1,3 +1,5 @@
+from utils.augmentor.misc import MiscEffect
+from utils.augmentor.color import VisualEffect
 from centernet_detect.utils import heatmap, normalize_image
 from utils.config import Config
 import pandas as pd
@@ -83,6 +85,9 @@ class DataGenerator(Sequence):
         self.is_train = mode == 'fit'
         self.num_classes = config.num_classes
         self.seed = config.seed
+        self.enable_augmentation = config.enable_augmentation
+        self.visual_effect = VisualEffect()
+        self.misc_effect = MiscEffect()
 
         self.dim = (config.input_size, config.input_size)
         df_modes = {
@@ -144,9 +149,8 @@ class DataGenerator(Sequence):
         for i, ID in enumerate(list_IDs_batch):
             im_name = os.path.basename(ID)
             img_path = os.path.join(self.base_path, im_name)
-            img = self.__load_rgb(img_path)
-            im_h, im_w = img.shape[:2]
-            self.image_height, self.image_width = im_h, im_w
+            img = cv2.imread(img_path)
+            img = normalize_image(img)
             img = cv2.resize(img, (self.input_size, self.input_size))
             X.append(img)
 
@@ -159,12 +163,29 @@ class DataGenerator(Sequence):
         for i, ID in enumerate(list_IDs_batch):
             im_name = os.path.basename(ID)
             img_path = os.path.join(self.base_path, im_name)
-            img = self.__load_rgb(img_path)
-            im_h, im_w = img.shape[:2]
-            self.image_height, self.image_width = im_h, im_w
+
+            img = cv2.imread(img_path)
+            src_bbox = self.df[self.df[self.image_id]==ID]
+
+            if self.enable_augmentation:
+                bbox = src_bbox[['x1', 'y1', 'x2', 'y2']].values
+                img = self.visual_effect(img)
+                img, bbox = self.misc_effect(img, bbox)
+
+                # # visual for debug
+                # img = img.astype(np.int32)
+                # for box in bbox.astype(np.int32):
+                #     cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
+                # # cv2.namedWindow('image', cv2.WINDOW_NORMAL)
+                # cv2.imshow('image', img.astype(np.uint8))
+                # cv2.waitKey(0)
+
+                bbox = np.hstack((bbox, src_bbox[['label']].values)).astype(np.int32)
+                # print(bbox)
+            else:
+                bbox = src_bbox[['x1', 'y1', 'x2', 'y2', 'label']].values
 
             # print(self.df)
-            bbox = self.df[self.df[self.image_id]==ID][['x1', 'y1', 'x2', 'y2', 'label']].values
 
             # bbslist = []
             
@@ -180,10 +201,12 @@ class DataGenerator(Sequence):
             # for box in bbs_aug:
             #     bbox.append([box.x1, box.y1, box.x2, box.y2, box.label])
 
+            img = normalize_image(img)
+            im_h, im_w = img.shape[:2]
             img = cv2.resize(img, (self.input_size, self.input_size))
             X.append(img)
 
-            hm, reg, wh = heatmap(bbox, (self.image_height, self.image_width), self.config)
+            hm, reg, wh = heatmap(bbox, (im_h, im_w), self.config)
             hms.append(hm)
             regs.append(reg)
             whs.append(wh)
@@ -200,9 +223,4 @@ class DataGenerator(Sequence):
         img = img.astype(np.float32) / 255.
         img = np.expand_dims(img, axis=-1)
 
-        return img
-    
-    def __load_rgb(self, img_path):
-        img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
-        img = normalize_image(img)
         return img

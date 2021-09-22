@@ -1,6 +1,7 @@
 # from keras_centernet_count.models.decode import ClassificationDecode
 # from keras_centernet_count.train import train
 # from centernet_detect.eval import eval_models
+from utils.augmentor.test_aug import visualize_test
 from utils.map_utils.calc_map import calc_map
 from centernet_detect.train import train
 from centernet_detect.models.hourglass import create_model
@@ -36,16 +37,25 @@ config = Config(
     epochs=1,
     batch_size=1,
     image_id='filename',
-    input_size=512
+    input_size=512,
+    enable_augmentation=True,
     # weights_path='/kaggle/working/centernet.hdf5',
 )
 train_df, valid_df, test_df, le = load_data(config)
 
 # print(estimate_crowd_threshold(train_df, le, config))
 
-# data_gen = DataGenerator(valid_df, config, mode='valid')
-# X, Y = data_gen.__getitem__(1)
+data_gen = DataGenerator(valid_df, config, mode='valid')
+for i in range(1, 100):
+    X, Y = data_gen.__getitem__(i)
+    # hm, reg, wh = Y
+    # img = cv2.resize(X[0], (config.output_size,config.output_size))
+    plt.imshow(X[0])
+    # plt.imshow(hm[0][..., 0], alpha=0.5)
+    plt.show()
 # Y_pred = Y[:,:,:,: config.num_classes]
+
+# visualize_test(train_df, config.train_path, config, limit=1)
 
 # hm, reg, wh = Y
 # print(hm.shape, reg.shape, wh.shape)
@@ -99,14 +109,14 @@ train_df, valid_df, test_df, le = load_data(config)
 
 # train(model, train_df, valid_df, config, generator=DataGenerator)
 
-eval_models(valid_df, test_df, config, model_prefix='centernet_detect_hg', 
-    eval_category='every_epoch',
-    threshold=0.5,
-    model_garden={
-        '1stack': create_model(config, 1),
-        '2stack': create_model(config, 2),
-    }
-)
+# eval_models(valid_df, test_df, config, model_prefix='centernet_detect_hg', 
+#     eval_category='every_epoch',
+#     threshold=0.5,
+#     model_garden={
+#         '1stack': create_model(config, 1),
+#         '2stack': create_model(config, 2),
+#     }
+# )
 
 
 # maes = calcmAP(model, valid_df, config, confidences=[0.25, 0.5, 0.7])
@@ -129,3 +139,4 @@ eval_models(valid_df, test_df, config, model_prefix='centernet_detect_hg',
 
 # visualize(detections[0], X[0], config, display=True)
 # plt.show()
+
