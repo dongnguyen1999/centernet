@@ -1,6 +1,7 @@
 # from keras_centernet_count.models.decode import ClassificationDecode
 # from keras_centernet_count.train import train
 # from centernet_detect.eval import eval_models
+from utils.tool import auto_concat_rfds
 from utils.augmentor.test_aug import visualize_test
 from utils.map_utils.calc_map import calc_map
 from centernet_detect.train import train
@@ -41,18 +42,20 @@ config = Config(
     enable_augmentation=True,
     # weights_path='/kaggle/working/centernet.hdf5',
 )
-train_df, valid_df, test_df, le = load_data(config)
+# train_df, valid_df, test_df, le = load_data(config)
+
+auto_concat_rfds(os.path.join(config.data_base, 'train_mosaic_box_aug'))
 
 # print(estimate_crowd_threshold(train_df, le, config))
 
-data_gen = DataGenerator(valid_df, config, mode='valid')
-for i in range(1, 100):
-    X, Y = data_gen.__getitem__(i)
-    # hm, reg, wh = Y
-    # img = cv2.resize(X[0], (config.output_size,config.output_size))
-    plt.imshow(X[0])
-    # plt.imshow(hm[0][..., 0], alpha=0.5)
-    plt.show()
+# data_gen = DataGenerator(valid_df, config, mode='valid')
+# for i in range(1, 100):
+#     X, Y = data_gen.__getitem__(i)
+#     # hm, reg, wh = Y
+#     # img = cv2.resize(X[0], (config.output_size,config.output_size))
+#     plt.imshow(X[0])
+#     # plt.imshow(hm[0][..., 0], alpha=0.5)
+#     plt.show()
 # Y_pred = Y[:,:,:,: config.num_classes]
 
 # visualize_test(train_df, config.train_path, config, limit=1)
