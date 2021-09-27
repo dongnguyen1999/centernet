@@ -48,13 +48,13 @@ def preprocessing(source_path, labeled_path):
 def load_data(config: Config):
     datagen = ImageDataGenerator(
         rescale=1.0/255.0,
-        width_shift_range=[-0.15, 0.15],
-        height_shift_range=[-0.15, 0.15],
+        # width_shift_range=[-0.1, 0.1],
+        # height_shift_range=[-0.1, 0.1],
         horizontal_flip=True,
-        rotation_range=20,
-        brightness_range=[0.3,1.5],
-        shear_range=15,
-        zoom_range=[0.8,1.2],
+        # rotation_range=15,
+        brightness_range=[0.8,1.2],
+        # shear_range=15,
+        # zoom_range=[0.8,1.2],
         fill_mode='constant',
         cval=0
     )
