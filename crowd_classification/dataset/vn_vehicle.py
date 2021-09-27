@@ -7,33 +7,43 @@ from random import seed
 from random import random
 from sklearn.model_selection import train_test_split
 from keras.preprocessing.image import ImageDataGenerator
+import pandas as pd
 
-def preprocessing(config: Config):
-    raw_img_paths = glob(os.path.join(config.train_path, 'TrainImagePart*/'))
-    output_path = os.path.join(config.train_path, 'train')
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
-    for img_path in raw_img_paths:
-        annotation_paths = glob(os.path.join(img_path, 'PreprocessingVideo1*.txt'))
-        classes_path = os.path.join(img_path, 'classes.txt')
-        classes = []
-        with open(classes_path, 'r') as f:
-            classes = [line.strip() for line in f.readlines()]
-        # print(classes)
-        for cl in classes:
-            class_path = os.path.join(output_path, cl)
-            if not os.path.exists(class_path):
-                os.makedirs(class_path)
+def load_directory(path):
+    if not os.path.exists(path):
+        raise ValueError("Input path is not exist!")
+
+    df = []
+    for subdir in glob(os.path.join(path, '*/')):
+        label_name = os.path.basename(subdir[:-1])
+        for img_file in glob(os.path.join(subdir, '*.jpg')):
+            filename = os.path.basename(img_file)
+            df.append([filename, label_name])
+    
+    return pd.DataFrame(df, columns=['filename', 'label'])
+
+def generate_label(splited_path, label_df):
+    for img_path in glob(os.path.join(splited_path, '*.jpg')):
+        filename = os.path.basename(img_path)
+        label = label_df[label_df['filename'] == filename][['label']].values[0,0]
+        subdir = os.path.join(splited_path, label)
+        if not os.path.exists(subdir):
+            os.makedirs(subdir)
+        shutil.move(img_path, os.path.join(subdir, filename))
         
-        for anno_path in annotation_paths:
-            first_line = ""
-            with open(anno_path, 'r') as f:
-                lines = f.readlines()
-                first_line = lines[0].strip()
-            label = int(first_line[0])
-            class_path = os.path.join(output_path, classes[label])
-            img_file = os.path.basename(anno_path)[:-4] + '.jpg'
-            shutil.copyfile(os.path.join(img_path, img_file), os.path.join(class_path, img_file))
+
+def preprocessing(source_path, labeled_path):
+    train_path = os.path.join(source_path, 'train')
+    valid_path = os.path.join(source_path, 'valid')
+    test_path = os.path.join(source_path, 'test')
+
+    df = load_directory(labeled_path)
+
+    generate_label(train_path, df)
+    generate_label(valid_path, df)
+    generate_label(test_path, df)
+
+
 
 def load_data(config: Config):
     datagen = ImageDataGenerator(

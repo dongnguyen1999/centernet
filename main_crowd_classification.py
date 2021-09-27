@@ -1,7 +1,8 @@
+from utils.map_utils.calc_map import read_map_output
 from crowd_classification.eval import eval_models
 from crowd_classification.train import train
 from crowd_classification.models.cnn import create_model
-from crowd_classification.dataset.vn_vehicle import load_data
+from crowd_classification.dataset.vn_vehicle import load_data, preprocessing
 # from models.hourglass_centernet import create_model
 from numpy.lib.shape_base import expand_dims
 from utils.config import Config
@@ -54,10 +55,12 @@ train_gen, valid_gen, test_gen = load_data(config)
 # train(model, train_gen, valid_gen, test_gen, config)
 
 
-eval_models(valid_gen, test_gen, config, model_prefix='crowd_classification_512_s0',
-    model_garden={
-        'resnet50_fineturning': create_model(config, architecture='pretrained_resnet50', freeze_feature_block=False),
-        'vgg16_fineturning': create_model(config, architecture='pretrained_vgg16', freeze_feature_block=False),
-        'inceptionv3_fineturning': create_model(config, architecture='pretrained_inceptionv3', freeze_feature_block=False),
-    }
-)
+# eval_models(valid_gen, test_gen, config, model_prefix='crowd_classification_512_s0',
+#     model_garden={
+#         'resnet50_fineturning': create_model(config, architecture='pretrained_resnet50', freeze_feature_block=False),
+#         'vgg16_fineturning': create_model(config, architecture='pretrained_vgg16', freeze_feature_block=False),
+#         'inceptionv3_fineturning': create_model(config, architecture='pretrained_inceptionv3', freeze_feature_block=False),
+#     }
+# )
+
+# preprocessing('D:\source', 'D:\labeled')

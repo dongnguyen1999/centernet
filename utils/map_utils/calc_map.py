@@ -22,6 +22,37 @@ import numpy as np
                 (Right,Bottom)
 '''
 
+def read_map_output(eval_result_path, num_classes):
+    output_path = os.path.join(eval_result_path, 'output', 'output.txt')
+    
+    file = open(output_path, 'r')
+    lines = file.readlines()
+    
+    aps = [0,0,0]
+    
+    for label in range(num_classes):
+        print(label)
+        for line in lines:
+            if f'{label} AP' in line:
+                print('matched')
+                aps[int(label)] = float(line[: line.find('%')])
+                break
+    
+    for line in lines:
+        if 'mAP =' in line:
+            map = float(line[line.find('=')+1: line.find('%')])
+            break
+
+    return map, aps
+
+
+        
+        
+
+
+
+    
+
 def calc_map(eval_result_path, image_path=None, iou_threshold=0.5, plot_result=True, ignore_classes=[], temp_path=".temp_files"):
 
     # make sure that the cwd() is the location of the python script (so that every path makes sense)

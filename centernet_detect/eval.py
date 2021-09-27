@@ -1,4 +1,4 @@
-from utils.map_utils.calc_map import calc_map
+from utils.map_utils.calc_map import calc_map, read_map_output
 from centernet_detect.utils import normalize_image
 import cv2
 from tqdm.std import trange
@@ -124,5 +124,21 @@ def eval(model, model_name, test_df, testset_name, config: Config, confidence, i
         # print(boxes, pred_box)
 
     calc_map(save_path, tem_img_path, iou_threshold, temp_path=os.path.join(config.data_base, 'eval', '.temp_files'))
-  
+
+def read_eval_output(model_prefix, config: Config):
+    df = []
+    for eval_result in glob(os.path.join(config.logging_base, 'eval', f'{model_prefix}*')):
+        map, aps = read_map_output(eval_result, config.num_classes)
+        eval_name = os.path.basename(eval_result)
+        epoch = eval_name[eval_name.find('epoch')+5: eval_name.find('_', eval_name.find('epoch'))]
+        testset = 'valid' if eval_name.find('valid') != -1 else eval_name[eval_name.find('test'): eval_name.find('_', eval_name.find('test'))]
+        iou = eval_name[eval_name.find('iou')+3:]
+        df.append([eval_name, epoch, testset, iou, map, aps[0], aps[1], aps[2]])
+        print(eval_name, epoch, testset, iou, map, aps)
+    df = pd.DataFrame(df, columns=['model_name', 'epoch', 'testset', 'iou', 'map', 'ap0', 'ap1', 'ap2'])
+    df.to_csv(os.path.join(config.logging_base, f'{model_prefix}_eval.csv'), index=False)
+
+
+
+
     
