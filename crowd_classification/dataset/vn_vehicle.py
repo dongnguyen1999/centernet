@@ -50,13 +50,13 @@ def load_data(config: Config):
         rescale=1.0/255.0,
         # width_shift_range=[-0.1, 0.1],
         # height_shift_range=[-0.1, 0.1],
-        horizontal_flip=True,
+        # horizontal_flip=True,
         # rotation_range=15,
-        brightness_range=[0.8,1.2],
+        # brightness_range=[0.8,1.2],
         # shear_range=15,
         # zoom_range=[0.8,1.2],
-        fill_mode='constant',
-        cval=0
+        # fill_mode='constant',
+        # cval=0
     )
 
     train_gen = datagen.flow_from_directory(config.train_path, class_mode='binary', batch_size=config.batch_size, target_size=(config.input_size, config.input_size))
