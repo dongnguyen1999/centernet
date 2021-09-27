@@ -50,7 +50,7 @@ def calcScore(model, valid, config,  confidence=0.5, path=None, debug=False):
 
 
 class SaveBestScore(Callback):
-  def __init__(self, config: Config, path, valid_gen, confidence=0.25):
+  def __init__(self, config: Config, path, valid_gen, confidence=0.5):
     super(SaveBestScore, self).__init__()
     self.config = config
     self.best_weights = None
