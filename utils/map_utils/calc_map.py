@@ -31,10 +31,10 @@ def read_map_output(eval_result_path, num_classes):
     aps = [0,0,0]
     
     for label in range(num_classes):
-        print(label)
+        # print(label)
         for line in lines:
             if f'{label} AP' in line:
-                print('matched')
+                # print('matched')
                 aps[int(label)] = float(line[: line.find('%')])
                 break
     

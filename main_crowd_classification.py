@@ -1,3 +1,4 @@
+from centernet_detect.eval import read_eval_output
 from utils.map_utils.calc_map import read_map_output
 from crowd_classification.eval import eval_models
 from crowd_classification.train import train
