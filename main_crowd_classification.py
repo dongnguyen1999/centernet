@@ -1,3 +1,4 @@
+from crowd_classification.eval import eval_models
 from crowd_classification.train import train
 from crowd_classification.models.cnn import create_model
 from crowd_classification.dataset.vn_vehicle import load_data
@@ -47,7 +48,16 @@ train_gen, valid_gen, test_gen = load_data(config)
 #     # plt.imshow(hm[0][..., 0], alpha=0.5)
 #     plt.show()
 
-model = create_model(config, architecture='pretrained_vgg16', freeze_feature_block=True)
+# model = create_model(config, architecture='pretrained_vgg16', freeze_feature_block=True)
 
 # # # fit model
-train(model, train_gen, valid_gen, test_gen, config)
+# train(model, train_gen, valid_gen, test_gen, config)
+
+
+eval_models(valid_gen, test_gen, config, model_prefix='crowd_classification_512_s0',
+    model_garden={
+        'resnet50_fineturning': create_model(config, architecture='pretrained_resnet50', freeze_feature_block=False),
+        'vgg16_fineturning': create_model(config, architecture='pretrained_vgg16', freeze_feature_block=False),
+        'inceptionv3_fineturning': create_model(config, architecture='pretrained_inceptionv3', freeze_feature_block=False),
+    }
+)
