@@ -42,7 +42,8 @@ def train(model, train, valid, test, config: Config):
     reduce_lr = ReduceLROnPlateau(monitor = 'val_loss', factor=0.25, patience=2, min_lr=1e-6, verbose=1)
 
     # compile model
-    opt =  SGD(learning_rate=config.lr, momentum=0.9)
+    # opt =  SGD(learning_rate=config.lr, momentum=0.9)
+    opt = Adam(learning_rate=config.lr)
     model.compile(optimizer=opt, loss='binary_crossentropy')
 
     history = model.fit(
