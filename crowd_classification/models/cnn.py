@@ -62,7 +62,7 @@ def pretrained_feature_extractor(config: Config, feature_extractor, freeze_featu
 	# add new classifier layers
 	flat1 = Flatten()(model.layers[-1].output)
 	class1 = Dense(units, activation='relu', kernel_initializer='he_uniform')(flat1)
-	class1 = Dense(units/4, activation='relu', kernel_initializer='he_uniform')(class1)
+	# class1 = Dense(units/4, activation='relu', kernel_initializer='he_uniform')(class1)
 	output = Dense(1, activation='sigmoid')(class1)
 	# define new model
 	model = Model(inputs=model.inputs, outputs=output)
