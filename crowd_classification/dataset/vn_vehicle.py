@@ -77,8 +77,8 @@ def load_data(config: Config):
 
 
     train_gen = datagen.flow_from_directory(config.train_path, class_mode='binary', batch_size=config.batch_size, target_size=(config.input_size, config.input_size))
-    valid_gen = datagen.flow_from_directory(config.valid_path, class_mode='binary', batch_size=config.batch_size, target_size=(config.input_size, config.input_size))
-    test_gen = datagen.flow_from_directory(config.test_path, class_mode='binary', batch_size=1, target_size=(config.input_size, config.input_size))
+    valid_gen = valid_test_gen.flow_from_directory(config.valid_path, class_mode='binary', batch_size=config.batch_size, target_size=(config.input_size, config.input_size))
+    test_gen = valid_test_gen.flow_from_directory(config.test_path, class_mode='binary', batch_size=1, target_size=(config.input_size, config.input_size))
 
     return train_gen, valid_gen, test_gen
 
