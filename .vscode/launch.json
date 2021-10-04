@@ -8,7 +8,7 @@
             "name": "Python: Main File",
             "type": "python",
             "request": "launch",
-            "program": "main_crowd_classification.py",
+            "program": "inference_main.py",
             "console": "integratedTerminal"
         }
     ]

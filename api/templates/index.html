@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <title>File Dropper</title>
+    <style>
+        video, input {
+            display: block;
+        }
+
+        input {
+            width: 100%;       
+        }
+
+        .info {
+            background-color: aqua;            
+        }
+
+        .error {
+            background-color: red;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- <div class="row">
+            <div class="col-lg-8  offset-lg-2">
+                <h3 class="mt-5">Live Streaming</h3>
+                <img src="{{ url_for('video_feed') }}" width="100%">
+            </div>
+        </div> -->
+        <div>
+            <input type="file" name="file">
+            <button id="btn-upload">Upload</button>
+        </div>
+        <div>Uploading: <span id="progress-value">0</span>%</div>
+    </div>
+
+    <div class="modal"></div>
+
+    <script type="text/javascript">
+        // Our JavaScript code will go here
+    </script>
+
+    <h2>Hello OpenCV.js</h2>
+    <div>
+        <div class="inputoutput">
+            <div id="message"></div>
+            <input id="video-input" type="file" accept="video/*"/>
+            <video controls autoplay style="width: 300px; height: 200px"></video>
+        </div>
+        
+        <div class="inputoutput">
+            <canvas id="canvasOutput" ></canvas>
+            <div class="caption">canvasOutput</div>
+        </div>
+    </div>
+    
+    <script async src="https://docs.opencv.org/3.3.1/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script>
+
+        let URL = window.URL || window.webkitURL
+        let displayMessage = function (message, isError) {
+            let element = document.querySelector('#message')
+            element.innerHTML = message
+            element.className = isError ? 'error' : 'info'
+        }
+        let playSelectedFile = function (event) {
+            let file = this.files[0]
+            console.log(file);
+            let type = file.type
+            let videoNode = document.querySelector('video')
+            let canPlay = videoNode.canPlayType(type)
+            if (canPlay === '') canPlay = 'no'
+            let message = 'Can play type "' + type + '": ' + canPlay
+            let isError = canPlay === 'no'
+            displayMessage(message, isError)
+
+            if (isError) {
+                return
+            }
+
+            let fileURL = URL.createObjectURL(file)
+            videoNode.src = fileURL
+
+            onLoadVideo(videoNode)
+        }
+        let inputNode = document.querySelector('#video-input')
+        inputNode.addEventListener('change', playSelectedFile, false)
+
+        function onLoadVideo(video) {
+            video.width = 300;
+            video.height = 200;
+            console.log('start cap', video.height, video.width);
+            let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+            let dst = new cv.Mat(video.height, video.width, cv.CV_8UC1);
+            let cap = new cv.VideoCapture(video);
+
+            let segRange = [[0,40], [50,100], [200,400]];
+
+            
+            // let fps = parseInt(cap.get(cv.CAP_PROP_FPS))
+            // let size = [parseInt(cap.get(cv.CAP_PROP_FRAME_WIDTH)), parseInt(cap.get(cv.CAP_PROP_FRAME_HEIGHT))]
+            // let fourcc = cv.VideoWriter.fourcc('m','p','4','v');
+
+            // segRange.forEach((seg, idx) => {
+            //     let [begFidx,endFidx] = seg;
+            //     let writer = cv2.VideoWriter(shotsPath%idx, fourcc,fps ,size)
+            //     cap.set(cv2.CAP_PROP_POS_FRAMES,begFidx)
+            //     ret = True # has frame returned
+            //     while(cap.isOpened() and ret and writer.isOpened()):
+            //         ret, frame = cap.read()
+            //         frame_number = cap.get(cv2.CAP_PROP_POS_FRAMES) - 1
+            //         if frame_number < endFidx:
+            //             writer.write(frame)
+            //         else:
+            //             break
+            //     writer.release()
+            // })
+
+            // for idx,(begFidx,endFidx) in enumerate(segRange):
+                
+
+            const FPS = 5;
+            function processVideo() {
+                try {
+                    // if (!streaming) {
+                    //   // clean and stop.
+                    //   src.delete();
+                    //   dst.delete();
+                    //   return;
+                    // }
+                    let begin = Date.now();
+                    // start processing.
+                    cap.read(src);
+                    cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
+                    console.log(cv);
+                    console.log(cv.imencode('.jpg', dst));
+                    cv.imshow("canvasOutput", dst);
+                    // schedule the next one.
+                    let delay = 1000 / FPS - (Date.now() - begin);
+                    setTimeout(processVideo, delay);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+
+            setTimeout(processVideo, 0);
+
+            console.log('end cap');
+        }
+
+        // let imgElement = document.getElementById("imageSrc")
+
+        // let inputElement = document.getElementById("fileInput");
+        // inputElement.addEventListener("change", (e) => {
+        //     imgElement.src = URL.createObjectURL(e.target.files[0]);
+        // }, false);
+
+        // imgElement.onload = function() {
+        //     let mat = cv.imread(imgElement);
+        //     cv.imshow('canvasOutput', mat);
+        //     mat.delete();
+        // };
+
+
+        function generateUUID() { // Public Domain/MIT
+            let d = new Date().getTime();//Timestamp
+            let d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now()*1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                let r = Math.random() * 16;//random number between 0 and 16
+                if(d > 0){//Use timestamp until depleted
+                    r = (d + r)%16 | 0;
+                    d = Math.floor(d/16);
+                } else {//Use microseconds since page-load if supported
+                    r = (d2 + r)%16 | 0;
+                    d2 = Math.floor(d2/16);
+                }
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
+        }
+
+        const sliceFile = (fileBlob, num_chunks) => {
+            let chunks = []
+            const chunkSize = Math.ceil(fileBlob.size / num_chunks)
+
+            for (let i = 0; i < num_chunks; i += 1) {
+                const start = chunkSize * i
+                const end = chunkSize * (i + 1)
+
+                const chunk = fileBlob.slice(start, end, fileBlob.type)
+                chunks.push(chunk)
+            }
+
+            return chunks
+        }
+
+        function onOpenCvReady() {
+            console.log('Loaded opencv2');
+
+            $('#btn-upload').click(function() {
+                let files = $('input[type="file"]').prop('files');
+                if (files.length > 0) {
+                    let file = files[0];
+                    let uuid = generateUUID();
+                    let num_chunks = 3;
+                    console.log(file);
+                    sliceFile(file, num_chunks).forEach((chunk, index) => {
+                        let submitData = {
+                            filename: file.name,
+                            uuid: uuid,
+                            index: index,
+                            total_chunk: num_chunks,
+                            total_size: file.size,
+                            chunk_size: chunk.size,
+                            chunk: chunk
+                        }
+                        if (index == 0) {
+                            console.log(submitData);
+                            const formData = new FormData();
+                            for (const name in submitData) {
+                                formData.append(name, submitData[name]);
+                            }
+
+                            fetch('/upload', {
+                                method: 'POST',
+                                body: formData
+                            });
+                        }
+                        
+                        
+                    })
+                }
+            })
+
+
+        }
+
+        
+
+        
+        
+       
+
+    </script>
+</body>
+</html>

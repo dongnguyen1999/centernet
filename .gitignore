@@ -1,3 +1,6 @@
 data/
 .vscode/launch.json
 *.pyc
+*.mp4
+inference/
+inference/weight/*
