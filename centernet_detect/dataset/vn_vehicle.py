@@ -10,6 +10,7 @@ from tensorflow.keras.utils import Sequence
 import cv2
 from imgaug import augmenters
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
+from matplotlib import pyplot as plt
 
 def load_data(config: Config):
     names=['filename', 'x1', 'y1', 'x2', 'y2', 'label']
@@ -165,9 +166,10 @@ class DataGenerator(Sequence):
             img_path = os.path.join(self.base_path, im_name)
 
             img = cv2.imread(img_path)
+            
             src_bbox = self.df[self.df[self.image_id]==ID]
 
-            if self.enable_augmentation:
+            if self.enable_augmentation == True:
                 bbox = src_bbox[['x1', 'y1', 'x2', 'y2']].values
                 img = self.visual_effect(img)
                 img, bbox = self.misc_effect(img, bbox)

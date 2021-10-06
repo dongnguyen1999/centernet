@@ -73,7 +73,7 @@ def load_data(config: Config):
         cval=0
     )
 
-    valid_test_gen = datagen = ImageDataGenerator(rescale=1.0/255.0)
+    valid_test_gen = ImageDataGenerator(rescale=1.0/255.0)
 
 
     train_gen = datagen.flow_from_directory(config.train_path, class_mode='binary', batch_size=config.batch_size, target_size=(config.input_size, config.input_size))
