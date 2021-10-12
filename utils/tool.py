@@ -28,10 +28,10 @@ def auto_concat_rfds(path):
         print(f'Read {len(csv_df)} row from {csv_file}')
         os.remove(csv_file)
 
-    valid_path = os.path.join(path, 'valid')
-    shutil.copytree(valid_path, os.path.join(output_path, 'valid')) 
+    # valid_path = os.path.join(path, 'valid')
+    # shutil.copytree(valid_path, os.path.join(output_path, 'valid')) 
 
     print(f'Sum total row is {len(df)}')
-    df.to_csv(os.path.join(train_path, '_annotations_custom_v2.txt'), index=False, header=False)
+    df.to_csv(os.path.join(train_path, '_annotations.csv'), index=False, header=False)
     
 

@@ -1,13 +1,15 @@
 from inference.main import main
 # from inference.model.decode import CtDetDecode, CountDecode
 from centernet_detect.dataset.vn_vehicle import DataGenerator, load_data
-from inference.model.decode import visualize
+from inference.model.decode import create_mask, get_masked_img, visualize
 from inference.model.model import Model, create_models
 from inference.model.bg_subtraction import BackgroundSubtractorMOG2
 from utils.config import Config
 import cv2
 from matplotlib import pyplot as plt
 from keras.preprocessing.image import ImageDataGenerator
+import numpy as np
+import time
 # main()
 
 config = Config(
@@ -30,7 +32,7 @@ config = Config(
 crowd_model, detect_model = create_models(r'D:\CenterNet\inference\weight\vgg16_fineturning_epoch2.hdf5', r'D:\CenterNet\inference\weight\hg1stack_tfmosaic_epoch6.hdf5')
 background_subtractor = BackgroundSubtractorMOG2()
 
-model = Model(crowd_model, detect_model, background_subtractor, 0.5, 0.25, [5, 15], [0.03, 0.08])
+model = Model(crowd_model, detect_model, background_subtractor, 0.5, 0.25, [10, 25], [0.5, 2.0])
 
 # image = cv2.imread(r"C:\vehicle-data\video1_all\train\video1_1.jpg")
 # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -43,30 +45,66 @@ model = Model(crowd_model, detect_model, background_subtractor, 0.5, 0.25, [5, 1
 
 # cap = cv2.VideoCapture(r"C:\vehicle-data\raw\DLngoaiBenhVien\video1.avi")
 # cap = cv2.VideoCapture(r"C:\Users\nvdkg\Documents\Camtasia\dnnew_crowd.autosave\dnnew_crowd.autosave.mp4")
-cap = cv2.VideoCapture(r"C:\Users\nvdkg\Documents\Camtasia\Small cut\Small cut.mp4")
+
+# cap = cv2.VideoCapture(r"C:\Users\nvdkg\Documents\Camtasia\Small cut\Small cut.mp4")
+cap = cv2.VideoCapture(r"C:\vehicle-data\raw\DLngoaiBenhVien\video1.avi")
+# cap = cv2.VideoCapture(r"C:\Users\nvdkg\Documents\Camtasia\test3_crowd\test3_crowd.mp4")
+# cap = cv2.VideoCapture(r"C:\Users\nvdkg\Documents\Camtasia\dnnew_crowd.autosave\dnnew_crowd.autosave.mp4")
+writer = cv2.VideoWriter("output.avi", cv2.VideoWriter_fourcc(*"MJPG"), 15, (640,480))
+
 # cap = cv2.VideoCapture(r'C:\Users\nvdkg\Documents\Camtasia\test3_crowd\test3_crowd.mp4')
 
-while True:
-    _, frame = cap.read()
+length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+count = 0
 
-    frame = cv2.resize(frame, (512, 512))
-    # cv2.imshow("Frame", frame)
+mouseX,mouseY = 0,0
+def get_mouse_click_coord(event, x, y, flags, param):
+    global mouseX,mouseY
+    if event == cv2.EVENT_LBUTTONDBLCLK:
+        mouseX,mouseY = x,y
 
-    label, detections = model.predict(frame)
+# cv2.namedWindow('Predicted')
+# cv2.setMouseCallback('Predicted', get_mouse_click_coord)
 
-    if label < 3:
-        cv2.rectangle(frame, (1, 1), (511, 511), (0, 255, 0), 3)
-        cv2.imshow("Predicted", visualize(detections, frame, display=False))
+# dnnew mask
+pts = np.array([[0, 317], [286, 230], 
+                [512, 232], [512, 512], 
+                [0, 512]], np.int32)
+
+# test3 mask
+# pts = np.array([[109, 446], [86, 246], 
+#                 [191, 249], [478, 318]], np.int32)
+
+env_mask = create_mask(pts)
+
+while(cap.isOpened()):
+    ret, frame = cap.read()
+    if ret == True:
+        frame = cv2.resize(frame, (512, 512))
+        
+        # cv2.imshow("Frame", frame)
+
+        label, detections, diff_rate = model.predict(frame, mask=env_mask)
+        # label, detections, diff_rate = model.predict(frame)
+
+        print('Processing video...%s remain (Speed: %.2f FPS; Progress: %d%% - %d/%d)' % (time.strftime('%H:%M:%S', time.gmtime(int((length-count)/(1000 / model.current_pred_time)))), 1000 / model.current_pred_time, count * 100 / length, count, length), end="\r")
+        # frame = visualize(frame, label, detections, diff_rate, model.current_classify_time, model.current_bs_time, model.current_detect_time, model.current_pred_time, display=False, output_size=(512,512))
+        frame = visualize(frame, label, detections, diff_rate, model.current_classify_time, model.current_bs_time, model.current_detect_time, model.current_pred_time, display=False, output_size=(640,480))
+            
+        # cv2.imshow("Predicted", frame)
+        writer.write(frame)
+        count += 1
+
+        key = cv2.waitKey(30)
+        if key == 27:
+            break
+        # elif key == ord('a'):
+        #     print(mouseX,mouseY)
     else:
-        cv2.rectangle(frame, (1, 1), (511, 511), (0, 0, 255), 3)
-        cv2.imshow("Predicted", frame,)
-
-
-    key = cv2.waitKey(30)
-    if key == 27:
         break
 
 cap.release()
+writer.release()
 cv2.destroyAllWindows()
 
 # visualize(detections, cv2.resize(image, (512, 512)), display=True)

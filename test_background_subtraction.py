@@ -12,7 +12,7 @@ subtractor = cv2.createBackgroundSubtractorMOG2(history=15, varThreshold=100, de
 # subtractor = cv2.createBackgroundSubtractorKNN(history=50, dist2Threshold=1000)
 while True:
     _, frame = cap.read()
-
+    frame = cv2.resize(frame, (512, 512))
     mask = subtractor.apply(frame)
     
     # frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
@@ -25,7 +25,7 @@ while True:
     cv2.imshow("Frame", frame)
     # cv2.imshow("Difference", difference)
     cv2.imshow("Mask", cv2.medianBlur(mask, 1))
-    print(np.sum(mask > 0) / (mask.shape[0]*mask.shape[1]))
+    # print(np.sum(mask > 0) / (mask.shape[0]*mask.shape[1]))
 
     key = cv2.waitKey(30)
     if key == 27:

@@ -87,7 +87,6 @@ def eval(model, model_name, test_df, testset_name, config: Config, confidence, i
         img_path = config.valid_path if test_path == None else test_path
         
         img = cv2.imread(os.path.join(img_path, img_name))
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         im_h, im_w = img.shape[:2]
 
         if save_tem_img:

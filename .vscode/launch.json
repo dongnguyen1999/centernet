@@ -8,7 +8,7 @@
             "name": "Python: Main File",
             "type": "python",
             "request": "launch",
-            "program": "inference_main.py",
+            "program": "mask_data.py",
             "console": "integratedTerminal"
         }
     ]
