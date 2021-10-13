@@ -154,6 +154,7 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
 
     sum_cls_maes = np.array([0.0 for _ in range(config.num_classes)])
     sum_mae = 0
+    cls_N = np.array([0.000001 for _ in range(config.num_classes)])
     N = len(image_ids)
     
     for idx in trange(len(image_ids)):
@@ -179,6 +180,10 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
             x1, y1, x2, y2, label = box
             true_count[int(label)] += 1
 
+        for i in range(config.num_classes):
+            if true_count[i] > 0:
+                cls_N[i] += 1
+
         out = model_.predict(img[None])
 
         pred_count = np.array([0.0 for _ in range(config.num_classes)])
@@ -193,7 +198,7 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
         sum_cls_maes += cls_maes
         sum_mae += mae
 
-    sum_cls_maes /= N
+    sum_cls_maes /= cls_N
     sum_mae /= N
 
     return_array = [model_name, testset_name, confidence, sum_mae]
