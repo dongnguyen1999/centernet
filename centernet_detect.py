@@ -42,9 +42,9 @@ config = Config(
     enable_augmentation=True,
     # weights_path='/kaggle/working/centernet.hdf5',
 )
-# train_df, valid_df, test_df, le = load_data(config)
+train_df, valid_df, test_df, le = load_data(config)
 
-auto_concat_rfds(os.path.join(config.data_base, 'train_mosaic_box_aug'))
+# auto_concat_rfds(os.path.join(config.data_base, 'train_mosaic_box_aug'))
 
 # print(estimate_crowd_threshold(train_df, le, config))
 
@@ -112,14 +112,15 @@ auto_concat_rfds(os.path.join(config.data_base, 'train_mosaic_box_aug'))
 
 # train(model, train_df, valid_df, config, generator=DataGenerator)
 
-# eval_models(valid_df, test_df, config, model_prefix='centernet_detect_hg', 
-#     eval_category='every_epoch',
-#     threshold=0.5,
-#     model_garden={
-#         '1stack': create_model(config, 1),
-#         '2stack': create_model(config, 2),
-#     }
-# )
+eval_models(valid_df, test_df, config, model_prefix='centernet_detect_hg', metric="mae",
+    eval_category='every_epoch',
+    threshold=0.5,
+    confidence=0.25,
+    model_garden={
+        '1stack': create_model(config, 1),
+        '2stack': create_model(config, 2),
+    }
+)
 
 
 # maes = calcmAP(model, valid_df, config, confidences=[0.25, 0.5, 0.7])

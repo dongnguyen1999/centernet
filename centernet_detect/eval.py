@@ -16,11 +16,12 @@ import os
 import numpy as np
 from glob import glob
 import shutil
+from datetime import datetime
 
 #####TRAIN##########
 
-def eval_models(valid_df, test_df, config: Config, model_prefix=None, eval_category='every_epoch', model_ckpt_paths=[], model_garden={}, confidence=0, threshold=0.5):
-
+def eval_models(valid_df, test_df, config: Config, model_prefix=None, eval_category='every_epoch', model_ckpt_paths=[], model_garden={}, confidence=0, threshold=0.5, metric='map'):
+    eval_result = []
     if model_prefix != None:
         model_ckpt_paths = glob(os.path.join(config.logging_base, 'models', f'{model_prefix}*/'))
     # print(model_ckpt_paths)
@@ -36,14 +37,25 @@ def eval_models(valid_df, test_df, config: Config, model_prefix=None, eval_categ
             version_name = os.path.basename(version[:-1])
             version_model_name = f'{model_name}_{version_name}'
             print(f'Evaluating model {version_model_name}')
-            eval_model(model, os.path.join(version, eval_category), valid_df, test_df, config, model_name=f'{version_model_name}_{eval_category}', confidence=confidence, threshold=threshold)
+            if metric == 'map':
+                eval_model(model, os.path.join(version, eval_category), valid_df, test_df, config, model_name=f'{version_model_name}_{eval_category}', confidence=confidence, threshold=threshold)
+            elif metric == 'mae':
+                result = eval_model(model, os.path.join(version, eval_category), valid_df, test_df, config, model_name=f'{version_model_name}_{eval_category}', confidence=confidence, threshold=threshold, metric='mae')
+                eval_result.extend(result)
+
+    if metric == 'mae':
+        ts = datetime.now()
+        eval_result = pd.DataFrame(eval_result, columns=['model_name', 'testset', 'conf', 'mae', 'mae_2w', 'mae_4w', 'mae_prio'])
+        eval_result.to_csv(os.path.join(config.logging_base, 'eval', f'{model_prefix}_{ts.timestamp()}.csv'), index=False, header=True)
+
     
     
         
     
-def eval_model(model, checkpoint_path, valid_df, test_df, config: Config, confidence, threshold, model_name=None):
+def eval_model(model, checkpoint_path, valid_df, test_df, config: Config, confidence, threshold, model_name=None, metric='map'):
 
     ckpt_weights_files = glob(os.path.join(checkpoint_path, '*.hdf5'))
+    model_result = []
 
     for ckpt_file in ckpt_weights_files:
         model.load_weights(ckpt_file)
@@ -51,13 +63,23 @@ def eval_model(model, checkpoint_path, valid_df, test_df, config: Config, confid
         epoch_num = int(ckpt_filename[: ckpt_filename.find('-')])
 
         print(f'Epoch {epoch_num}: Evalutate valid')
-        eval(model, f'{model_name}_epoch{epoch_num}', valid_df, 'valid', config, confidence=confidence, iou_threshold=threshold)
+        if metric == 'map':
+            eval(model, f'{model_name}_epoch{epoch_num}', valid_df, 'valid', config, confidence=confidence, iou_threshold=threshold)
+        elif metric == 'mae':
+            result = eval_mae(model, f'{model_name}_epoch{epoch_num}', valid_df, 'valid', config, confidence=confidence, iou_threshold=threshold)
+            model_result.append(result)
 
         for test_index, test_path in enumerate(config.test_paths):
             test_id = test_index + 1
             print(f'Epoch {epoch_num}: Evalutate test{test_id}')
             current_test_df = test_df[test_df['test_id'] == test_id]
-            eval(model, f'{model_name}_epoch{epoch_num}', current_test_df, f'test{test_id}', config, confidence=confidence, iou_threshold=threshold, test_path=test_path)
+            if metric == 'map':
+                eval(model, f'{model_name}_epoch{epoch_num}', current_test_df, f'test{test_id}', config, confidence=confidence, iou_threshold=threshold, test_path=test_path)
+            elif metric == 'mae':
+                result = eval_mae(model, f'{model_name}_epoch{epoch_num}', current_test_df, f'test{test_id}', config, confidence=confidence, iou_threshold=threshold, test_path=test_path)
+                model_result.append(result)
+    
+    return model_result
 
     
 def eval(model, model_name, test_df, testset_name, config: Config, confidence, iou_threshold, test_path=None):
@@ -125,6 +147,60 @@ def eval(model, model_name, test_df, testset_name, config: Config, confidence, i
         # print(boxes, pred_box)
 
     calc_map(save_path, tem_img_path, iou_threshold, temp_path=os.path.join(config.data_base, 'eval', '.temp_files'))
+
+def eval_mae(model, model_name, test_df, testset_name, config: Config, confidence, iou_threshold, test_path=None):
+    model_ = CtDetDecode(model)
+    image_ids = test_df[config.image_id].unique()
+
+    sum_cls_maes = np.array([0.0 for _ in range(config.num_classes)])
+    sum_mae = 0
+    N = len(image_ids)
+    
+    for idx in trange(len(image_ids)):
+        detections = []
+        ground_truths = []
+
+        image_id = image_ids[idx]
+        img_name = os.path.basename(image_id)
+        img_path = config.valid_path if test_path == None else test_path
+        
+        img = cv2.imread(os.path.join(img_path, img_name))
+        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        im_h, im_w = img.shape[:2]
+
+        img = normalize_image(img)
+        img = cv2.resize(img, (config.input_size, config.input_size))
+
+        boxes = test_df[test_df[config.image_id]==image_id][['x1', 'y1', 'x2', 'y2', 'label']].values
+
+        true_count = np.array([0.0 for _ in range(config.num_classes)])
+
+        for box in boxes:
+            x1, y1, x2, y2, label = box
+            true_count[int(label)] += 1
+
+        out = model_.predict(img[None])
+
+        pred_count = np.array([0.0 for _ in range(config.num_classes)])
+        for detection in out[0]:
+            x1, y1, x2, y2, conf, label = detection
+            if conf > confidence:
+                pred_count[int(label)] += 1
+
+        cls_maes = np.abs(pred_count - true_count)
+        mae = np.abs(np.sum(pred_count) - np.sum(true_count))
+
+        sum_cls_maes += cls_maes
+        sum_mae += mae
+
+    sum_cls_maes /= N
+    sum_mae /= N
+
+    return_array = [model_name, testset_name, confidence, sum_mae]
+    return_array.extend(sum_cls_maes.tolist())
+    print(return_array)
+    return return_array
+
 
 def read_eval_output(model_prefix, config: Config):
     df = []
