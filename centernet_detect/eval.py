@@ -154,6 +154,8 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
 
     sum_cls_maes = np.array([0.0 for _ in range(config.num_classes)])
     sum_mae = 0
+    true_counts = np.array([0.0 for _ in range(config.num_classes)])
+    sum_count = 0
     cls_N = np.array([0.000001 for _ in range(config.num_classes)])
     N = len(image_ids)
     
@@ -179,6 +181,9 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
         for box in boxes:
             x1, y1, x2, y2, label = box
             true_count[int(label)] += 1
+        
+        true_counts += true_count
+        sum_count += np.sum(true_count)
 
         for i in range(config.num_classes):
             if true_count[i] > 0:
@@ -200,6 +205,11 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
 
     sum_cls_maes /= cls_N
     sum_mae /= N
+
+    true_counts /= cls_N
+    sum_count /= N
+
+    print(f'Average counting {testset_name}: {sum_count}; {true_counts.tolist()}')
 
     return_array = [model_name, testset_name, confidence, sum_mae]
     return_array.extend(sum_cls_maes.tolist())
