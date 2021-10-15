@@ -1,6 +1,6 @@
 from utils.augmentor.misc import MiscEffect
 from utils.augmentor.color import VisualEffect
-from centernet_detect.utils import heatmap, normalize_image
+from centernet_count.utils import heatmap, normalize_image
 from utils.config import Config
 import pandas as pd
 import os
@@ -151,6 +151,7 @@ class DataGenerator(Sequence):
             im_name = os.path.basename(ID)
             img_path = os.path.join(self.base_path, im_name)
             img = cv2.imread(img_path)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = normalize_image(img)
             img = cv2.resize(img, (self.input_size, self.input_size))
             X.append(img)
@@ -160,12 +161,13 @@ class DataGenerator(Sequence):
     
     def __generate_xy(self, list_IDs_batch):
         X = []
-        hms, regs, whs = [],[],[]
+        hms = []
         for i, ID in enumerate(list_IDs_batch):
             im_name = os.path.basename(ID)
             img_path = os.path.join(self.base_path, im_name)
 
             img = cv2.imread(img_path)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             
             src_bbox = self.df[self.df[self.image_id]==ID]
 
@@ -208,17 +210,13 @@ class DataGenerator(Sequence):
             img = cv2.resize(img, (self.input_size, self.input_size))
             X.append(img)
 
-            hm, reg, wh = heatmap(bbox, (im_h, im_w), self.config)
+            hm, _, _ = heatmap(bbox, (im_h, im_w), self.config)
             hms.append(hm)
-            regs.append(reg)
-            whs.append(wh)
         
         X = np.array(X)
         hms = np.array(hms, np.float32)
-        regs = np.array(regs, np.float32)
-        whs = np.array(whs, np.float32)
 
-        return X, [hms, regs, whs]
+        return X, [hms]
     
     def __load_grayscale(self, img_path):
         img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)

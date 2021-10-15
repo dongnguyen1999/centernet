@@ -8,7 +8,7 @@
             "name": "Python: Main File",
             "type": "python",
             "request": "launch",
-            "program": "centernet_detect.py",
+            "program": "centernet_count.py",
             "console": "integratedTerminal"
         }
     ]

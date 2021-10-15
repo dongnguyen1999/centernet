@@ -1,9 +1,9 @@
 from re import I
-from centernet_detect.utils import normalize_image
+from centernet_count.utils import normalize_image
 import os
 from tqdm.std import trange
 from utils.config import Config
-from centernet_detect.models.decode import CtDetDecode
+from centernet_count.models.decode import CountDecode
 from typing import List, Union
 from tensorflow.keras.callbacks import Callback
 import numpy as np
@@ -133,103 +133,99 @@ def calculate_image_precision(preds_sorted, gt_boxes, num_classes, thresholds=(0
   
   return image_precision, np.array(threshold_precision), image_cl_precision, np.array(threshold_cl_precision)
 
-def calcmAP(model, valid_df, config: Config, confidence=0.5, thresholds=np.arange(0.5, 0.76, 0.05), path=None):
-  model_ = CtDetDecode(model)
-  
-  iou_thresholds = [x for x in thresholds]
-  
-  precision = []
-  cl_precision = []
-  threshold_precisions = np.array([0.0 for _ in iou_thresholds])
-  threshold_cl_precisions = np.zeros((len(iou_thresholds), config.num_classes))
-
+def calcMae(model, valid_df, config: Config, confidence=0.5, path=None):
+  model_ = CountDecode(model)
   image_ids = valid_df[config.image_id].unique()
-  countN = 0
+
+  sum_cls_maes = np.array([0.0 for _ in range(config.num_classes)])
+  sum_mae = 0
+
+  true_counts = np.array([0.0 for _ in range(config.num_classes)])
+  sum_count = 0
+
+  cls_N = np.array([0.000001 for _ in range(config.num_classes)])
+  N = len(image_ids)
+  
   for idx in trange(len(image_ids)):
     image_id = image_ids[idx]
     img_name = os.path.basename(image_id)
     img_path = config.valid_path if path == None else path
+    
     img = cv2.imread(os.path.join(img_path, img_name))
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     im_h, im_w = img.shape[:2]
+
     img = normalize_image(img)
     img = cv2.resize(img, (config.input_size, config.input_size))
 
-    boxes = valid_df[valid_df[config.image_id]==image_id]
+    boxes = valid_df[valid_df[config.image_id]==image_id][['x1', 'y1', 'x2', 'y2', 'label']].values
 
-    boxes.x1 = np.floor(boxes.x1 * config.input_size / im_w)
-    boxes.y1 = np.floor(boxes.y1 * config.input_size / im_h)
-    boxes.x2 = np.floor(boxes.x2 * config.input_size / im_w)
-    boxes.y2 = np.floor(boxes.y2 * config.input_size / im_h)
+    true_count = np.array([0.0 for _ in range(config.num_classes)])
 
-    boxes = boxes[['x1', 'y1', 'x2', 'y2', 'label']].values
-    boxes = boxes.astype('int32')
+    for box in boxes:
+      x1, y1, x2, y2, label = box
+      true_count[int(label)] += 1
+    
+    true_counts += true_count
+    sum_count += np.sum(true_count)
+
+    for i in range(config.num_classes):
+      if true_count[i] > 0:
+        cls_N[i] += 1
 
     out = model_.predict(img[None])
-    pred_box,scores=[],[]
 
+    pred_count = np.array([0.0 for _ in range(config.num_classes)])
     for detection in out[0]:
-      x1, y1, x2, y2, conf, label = detection
+      conf, label = detection
       if conf > confidence:
-        pred_box.append([x1, y1, x2, y2, label])
-        scores.append(conf)
+        pred_count[int(label)] += 1
 
-    pred_box = np.array(pred_box, dtype=np.int32)
-    scores = np.array(scores)
+    cls_maes = np.abs(pred_count - true_count)
+    mae = np.abs(np.sum(pred_count) - np.sum(true_count))
 
-    # print(boxes, pred_box)
+    sum_cls_maes += cls_maes
+    sum_mae += mae
 
-    preds_sorted_idx = np.argsort(scores)[::-1]
-    preds_sorted = pred_box[preds_sorted_idx]
+  sum_cls_maes /= cls_N
+  sum_mae /= N
 
-    if len(boxes) > 0:
-      image_precision, threshold_precision, image_cl_precision, threshold_cl_precision = calculate_image_precision(preds_sorted, boxes, config.num_classes,
-                                              thresholds=iou_thresholds, debug=False)
-      precision.append(image_precision)
-      cl_precision.append(image_cl_precision)
-      threshold_precisions += threshold_precision
-      threshold_cl_precisions += threshold_cl_precision
-      countN += 1
-    else:
-      if len(preds_sorted) > 0:
-        precision.append(0)
-  
-  precision = np.array(precision)
-  cl_precision = np.array(cl_precision)
-  return np.mean(precision), (threshold_precisions / countN), np.mean(cl_precision, axis=0), (threshold_cl_precisions / countN)
+  true_counts /= cls_N
+  sum_count /= N
 
-class SaveBestmAP(Callback):
-  def __init__(self, config: Config, path, valid_df, confidence=0.25, thresholds=np.arange(0.5, 0.76, 0.05)):
-    super(SaveBestmAP, self).__init__()
+  return sum_mae, sum_cls_maes
+
+class SaveBestMae(Callback):
+  def __init__(self, config: Config, path, valid_df, confidence=0.5):
+    super(SaveBestMae, self).__init__()
     self.config = config
     self.best_weights = None
     self.path = path
-    self.thresholds = thresholds
     self.confidence = confidence
     self.valid_df = valid_df
 
   def on_train_begin(self, logs=None):
-    self.best = 0
+    self.best = 999999
     self.best_epoch = 0
 
   def on_epoch_end(self, epoch, logs=None):
-    current, _, _, _ = calcmAP(self.model, self.valid_df, self.config, confidence=self.confidence, thresholds=self.thresholds)
-    print('Current mAP: %.4f' % current)
-    if np.greater(current, self.best):
+    current, _ = calcMae(self.model, self.valid_df, self.config, confidence=self.confidence)
+    print('Current MAE: %.4f' % current)
+    if current < self.best:
       self.best = current
-      self.best_epoch = epoch
+      self.best_epoch = epoch+1
       self.best_weights = self.model.get_weights()
-      print('Best mAP: %.4f, saving model to %s' % (current, os.path.join(self.path, '{epoch:02d}-{map:.3f}.hdf5'.format(epoch=epoch, map=current))))
-      self.model.save_weights(os.path.join(self.path, '{epoch:02d}-{map:.3f}.hdf5'.format(epoch=epoch, map=current)))
+      print('Best MAE: %.4f, saving model to %s' % (current, os.path.join(self.path, '{epoch:02d}-{mae:.3f}.hdf5'.format(epoch=epoch+1, mae=current))))
+      self.model.save_weights(os.path.join(self.path, '{epoch:02d}-{mae:.3f}.hdf5'.format(epoch=epoch+1, mae=current)))
   
   def on_train_end(self, logs=None):
-    print('Training ended, the best map weight is at epoch %02d with map %.3f' % (self.best_epoch, self.best))
+    print('Training ended, the best mae weight is at epoch %02d with mae %.3f' % (self.best_epoch, self.best))
 
-class TestmAP(Callback):
-  def __init__(self, config: Config, path, valid_df, test_df, confidence=0.25, thresholds=np.arange(0.5, 0.76, 0.05)):
-    super(TestmAP, self).__init__()
+class TestMae(Callback):
+  def __init__(self, config: Config, path, valid_df, test_df, confidence=0.5):
+    super(TestMae, self).__init__()
     self.config = config
     self.path = path
-    self.thresholds = thresholds
     self.confidence = confidence
     self.test_df = test_df
     self.valid_df = valid_df
@@ -243,24 +239,16 @@ class TestmAP(Callback):
     thresholds = [x for x in self.thresholds]
     
     print(f'Evalutate valid')
-    current, maps, cl_maps, th_cl_maps = calcmAP(self.model, self.valid_df, self.config, confidence=self.confidence, thresholds=self.thresholds)
-    r = [f'valid', epoch, current]
-    names = ['test_id', 'epoch', 'mAP']
-    for index, iou in enumerate(thresholds):
-      # print('mAP@%.2f: %.4f' % (iou, maps[index]))
-      r.append(maps[index])
-      names.append('mAP@%.2f' % iou)
+    current, maes = calcMae(self.model, self.valid_df, self.config, confidence=self.confidence)
+    r = [f'valid', epoch+1, current]
+    names = ['test_id', 'epoch', 'MAE']
 
     for cl in range(self.num_classes):
-      print('mAP_class%d: %.4f' % (cl, cl_maps[cl]))
-      r.append(cl_maps[cl])
-      names.append('mAP_class%d' % cl)
-      for index, iou in enumerate(thresholds):
-        # print('mAP@%.2f_class%d: %.4f' % (iou, cl, th_cl_maps[index, cl]))
-        r.append(th_cl_maps[index, cl])
-        names.append('mAP@%.2f_class%d' % (iou, cl))
+      print('MAE_class%d: %.4f' % (cl, maes[cl]))
+      r.append(maes[cl])
+      names.append('MAE_class%d' % cl)
       
-    print('valid mAP: %.4f' % current)
+    print('valid MAE: %.4f' % current)
     rdf.append(r)
     columns = names
 
@@ -268,25 +256,19 @@ class TestmAP(Callback):
       test_id = test_index + 1
       print(f'Evalutate test{test_id}')
       test_df = self.test_df[self.test_df['test_id'] == test_id]
-      current, maps, cl_maps, th_cl_maps = calcmAP(self.model, test_df, self.config, path=test_path, confidence=self.confidence, thresholds=self.thresholds)
-      r = [f'test{test_id}', epoch, current]
-      for index, iou in enumerate(thresholds):
-        # print('mAP@%.2f: %.4f' % (iou, maps[index]))
-        r.append(maps[index])
+      current, maes = calcMae(self.model, test_df, self.config, path=test_path, confidence=self.confidence)
+      r = [f'test{test_id}', epoch+1, current]
 
       for cl in range(self.num_classes):
-        print('mAP_class%d: %.4f' % (cl, cl_maps[cl]))
-        r.append(cl_maps[cl])
-        for index, iou in enumerate(thresholds):
-          # print('mAP@%.2f_class%d: %.4f' % (iou, cl, th_cl_maps[index, cl]))
-          r.append(th_cl_maps[index, cl])
+        print('MAE_class%d: %.4f' % (cl, maes[cl]))
+        r.append(maes[cl])
           
-      print('test%s mAP: %.4f' % (test_id, current))
+      print('test%s MAE: %.4f' % (test_id, current))
       rdf.append(r)
 
     print('Saving...')
     rdf = pd.DataFrame(rdf, columns=columns)
-    rdf.to_csv(os.path.join(self.path, 'map-epoch{epoch:02d}.csv'.format(epoch=epoch)), index=False, header=True)
+    rdf.to_csv(os.path.join(self.path, 'map-epoch{epoch:02d}.csv'.format(epoch=epoch+1)), index=False, header=True)
     if len(self.df) == 0:
       self.df = rdf
     else:
