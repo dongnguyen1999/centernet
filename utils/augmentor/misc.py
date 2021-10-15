@@ -140,7 +140,7 @@ class MiscEffect:
 
     def __call__(self, image, boxes):
         image, boxes = multi_scale(image, boxes, prob=self.multi_scale_prob)
-        # image, boxes = rotate(image, boxes, prob=self.rotate_prob, border_value=self.border_value)
+        image, boxes = rotate(image, boxes, prob=self.rotate_prob, border_value=self.border_value)
         image, boxes = flipx(image, boxes, prob=self.flip_prob)
         image, boxes = crop(image, boxes, prob=self.crop_prob)
         image, boxes = translate(image, boxes, prob=self.translate_prob, border_value=self.border_value)
