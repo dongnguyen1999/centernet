@@ -10,7 +10,7 @@ from tensorflow.keras.losses import binary_crossentropy
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, ReduceLROnPlateau,LearningRateScheduler
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 from tensorflow.keras.callbacks import CSVLogger
-from models.decode import CountDecode
+from centernet_count.models.decode import CountDecode
 # from centernet_count.metrics import SaveBestmAP, TestmAP
 import os
 import numpy as np
