@@ -10,6 +10,7 @@ from tensorflow.keras.losses import binary_crossentropy
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, ReduceLROnPlateau,LearningRateScheduler
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 from tensorflow.keras.callbacks import CSVLogger
+from models.decode import CountDecode
 # from centernet_count.metrics import SaveBestmAP, TestmAP
 import os
 import numpy as np
@@ -82,7 +83,7 @@ def eval_model(model, checkpoint_path, valid_df, test_df, config: Config, confid
 
     
 def eval(model, model_name, test_df, testset_name, config: Config, confidence, iou_threshold, test_path=None):
-    model_ = CtDetDecode(model)
+    model_ = CountDecode(model)
     image_ids = test_df[config.image_id].unique()
     save_path = os.path.join(config.logging_base, 'eval', f'{model_name}_{testset_name}_conf{confidence}_iou{iou_threshold}')
     if os.path.exists(save_path):
@@ -148,7 +149,7 @@ def eval(model, model_name, test_df, testset_name, config: Config, confidence, i
     calc_map(save_path, tem_img_path, iou_threshold, temp_path=os.path.join(config.data_base, 'eval', '.temp_files'))
 
 def eval_mae(model, model_name, test_df, testset_name, config: Config, confidence, iou_threshold, test_path=None):
-    model_ = CtDetDecode(model)
+    model_ = CountDecode(model)
     image_ids = test_df[config.image_id].unique()
 
     sum_cls_maes = np.array([0.0 for _ in range(config.num_classes)])
@@ -167,7 +168,7 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
         img_path = config.valid_path if test_path == None else test_path
         
         img = cv2.imread(os.path.join(img_path, img_name))
-        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         im_h, im_w = img.shape[:2]
 
         img = normalize_image(img)
@@ -192,7 +193,7 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
 
         pred_count = np.array([0.0 for _ in range(config.num_classes)])
         for detection in out[0]:
-            x1, y1, x2, y2, conf, label = detection
+            conf, label = detection
             if conf > confidence:
                 pred_count[int(label)] += 1
 
