@@ -17,6 +17,7 @@ import numpy as np
 from glob import glob
 import shutil
 from datetime import datetime
+import time
 
 #####TRAIN##########
 
@@ -45,7 +46,7 @@ def eval_models(valid_df, test_df, config: Config, model_prefix=None, eval_categ
 
     if metric == 'mae':
         ts = datetime.now()
-        eval_result = pd.DataFrame(eval_result, columns=['model_name', 'testset', 'conf', 'mae', 'mae_2w', 'mae_4w', 'mae_prio'])
+        eval_result = pd.DataFrame(eval_result, columns=['model_name', 'testset', 'conf', 'mae', 'mae_2w', 'mae_4w', 'mae_prio', 'time'])
         eval_result.to_csv(os.path.join(config.logging_base, 'eval', f'{model_prefix}_{ts.timestamp()}.csv'), index=False, header=True)
 
     
@@ -158,6 +159,7 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
     sum_count = 0
     cls_N = np.array([0.000001 for _ in range(config.num_classes)])
     N = len(image_ids)
+    runtime = 0
     
     for idx in trange(len(image_ids)):
         detections = []
@@ -189,7 +191,9 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
             if true_count[i] > 0:
                 cls_N[i] += 1
 
+        start_time = time.time()
         out = model_.predict(img[None])
+        runtime += (time.time() - start_time) * 1000
 
         pred_count = np.array([0.0 for _ in range(config.num_classes)])
         for detection in out[0]:
@@ -213,6 +217,8 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
 
     return_array = [model_name, testset_name, confidence, sum_mae]
     return_array.extend(sum_cls_maes.tolist())
+
+    return_array.append(runtime/N)
     print(return_array)
     return return_array
 
