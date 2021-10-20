@@ -39,7 +39,7 @@ def train(model, train, valid, test, config: Config):
     csv_logger = CSVLogger(os.path.join(config.checkpoint_path, "history_log.csv"), append=True)
 
     # reduce learning rate
-    reduce_lr = ReduceLROnPlateau(monitor = 'val_loss', factor=0.05, patience=3, min_lr=1e-7, verbose=1)
+    reduce_lr = ReduceLROnPlateau(monitor = 'val_loss', factor=0.05, patience=2, min_lr=1e-7, verbose=1)
 
     # compile model
     opt =  SGD(learning_rate=config.lr, momentum=config.momentum)
