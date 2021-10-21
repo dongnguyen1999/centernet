@@ -151,8 +151,8 @@ class DataGenerator(Sequence):
             im_name = os.path.basename(ID)
             img_path = os.path.join(self.base_path, im_name)
             img = cv2.imread(img_path)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = normalize_image(img)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = cv2.resize(img, (self.input_size, self.input_size))
             X.append(img)
 
@@ -167,7 +167,6 @@ class DataGenerator(Sequence):
             img_path = os.path.join(self.base_path, im_name)
 
             img = cv2.imread(img_path)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             
             src_bbox = self.df[self.df[self.image_id]==ID]
 
@@ -206,6 +205,7 @@ class DataGenerator(Sequence):
             #     bbox.append([box.x1, box.y1, box.x2, box.y2, box.label])
 
             img = normalize_image(img)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             im_h, im_w = img.shape[:2]
             img = cv2.resize(img, (self.input_size, self.input_size))
             X.append(img)

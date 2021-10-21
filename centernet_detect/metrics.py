@@ -150,9 +150,10 @@ def calcmAP(model, valid_df, config: Config, confidence=0.5, thresholds=np.arang
     img_name = os.path.basename(image_id)
     img_path = config.valid_path if path == None else path
     img = cv2.imread(os.path.join(img_path, img_name))
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    
     im_h, im_w = img.shape[:2]
     img = normalize_image(img)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, (config.input_size, config.input_size))
 
     boxes = valid_df[valid_df[config.image_id]==image_id]

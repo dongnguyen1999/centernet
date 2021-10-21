@@ -50,7 +50,7 @@ def train(model, train_df, valid_df, config: Config, test_df=None, generator=Dat
     csv_logger = CSVLogger(os.path.join(config.checkpoint_path, "history_log.csv"), append=True)
 
     # reduce learning rate
-    reduce_lr = ReduceLROnPlateau(monitor = 'val_loss', factor=0.25, patience=2, min_lr=1e-6, verbose=1)
+    reduce_lr = ReduceLROnPlateau(monitor = 'val_loss', factor=0.05, patience=2, min_lr=5e-7, verbose=1)
 
     callbacks = [early_stopping, reduce_lr, model_frequently_checkpoint, model_bestloss_checkpoint, save_best_map, csv_logger]
 
