@@ -8,8 +8,6 @@ from sklearn.preprocessing import LabelEncoder
 import numpy as np
 from tensorflow.keras.utils import Sequence
 import cv2
-from imgaug import augmenters
-from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 from matplotlib import pyplot as plt
 
 def load_data(config: Config):
@@ -40,15 +38,6 @@ def load_data(config: Config):
     print('Test data size: %d' % len(test_df.filename.unique()))
 
     return train_df, valid_df, test_df, le
-
-def data_augmentation():
-    sometimes = lambda x: augmenters.Sometimes(0.5, x)
-
-    augment_sequential = augmenters.Sequential([
-        augmenters.Fliplr(0.5)
-    ], random_order=False)
-
-    return augment_sequential
 
 class DataGenerator(Sequence):
     'Generates data for Keras'
@@ -106,8 +95,6 @@ class DataGenerator(Sequence):
         self.random_state = config.seed
         self.image_id = config.image_id
 
-        self.aug = data_augmentation()
-
         self.num_output_layers = self.num_classes + 4 # The first n layers is heatmap for each class, 2 next layers for h-offset and w-offset, 2 last layers for h-size and w-size
         self.steps_factor = config.steps_factor if self.mode == 'fit' and config.steps_factor != None else 1
 
@@ -150,9 +137,8 @@ class DataGenerator(Sequence):
         for i, ID in enumerate(list_IDs_batch):
             im_name = os.path.basename(ID)
             img_path = os.path.join(self.base_path, im_name)
-            img = cv2.imread(img_path)
+            img = cv2.imread(img_path) # BGR image
             img = normalize_image(img)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = cv2.resize(img, (self.input_size, self.input_size))
             X.append(img)
 
@@ -166,7 +152,7 @@ class DataGenerator(Sequence):
             im_name = os.path.basename(ID)
             img_path = os.path.join(self.base_path, im_name)
 
-            img = cv2.imread(img_path)
+            img = cv2.imread(img_path) # BGR image
             
             src_bbox = self.df[self.df[self.image_id]==ID]
 
@@ -203,9 +189,9 @@ class DataGenerator(Sequence):
             # bbox = []
             # for box in bbs_aug:
             #     bbox.append([box.x1, box.y1, box.x2, box.y2, box.label])
+            visualize(bbox, img)
 
             img = normalize_image(img)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             im_h, im_w = img.shape[:2]
             img = cv2.resize(img, (self.input_size, self.input_size))
             X.append(img)
@@ -228,3 +214,30 @@ class DataGenerator(Sequence):
         img = np.expand_dims(img, axis=-1)
 
         return img
+
+def visualize(box_and_score, img, prob=0.1):
+    random_prob = np.random.uniform()
+    if random_prob < (1 - prob):
+        return
+    boxes = []
+    color_scheme = [(0,0,255), (255,0,0), (0,255,255), (0,127,127), (127,255,127), (255,255,0)]
+    number_of_rect = len(box_and_score)
+
+    display_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    for i in range(number_of_rect):
+        left, top, right, bottom, predicted_class = box_and_score[i]
+        top = np.floor(top).astype('int32')
+        left = np.floor(left).astype('int32')
+        bottom = np.floor(bottom).astype('int32')
+        right = np.floor(right).astype('int32')
+        predicted_class = int(predicted_class)
+
+        #print(top, left, right, bottom)
+        cv2.rectangle(display_img, (left, top), (right, bottom), color_scheme[predicted_class], 2)
+        boxes.append([left, top, right-left, bottom-top])
+
+    plt.figure()
+    plt.imshow(display_img)
+    plt.show()
+
