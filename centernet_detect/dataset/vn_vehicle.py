@@ -215,7 +215,7 @@ class DataGenerator(Sequence):
 
         return img
 
-def visualize(box_and_score, img, prob=0.05):
+def visualize(box_and_score, img, prob=0.005):
     random_prob = np.random.uniform()
     if random_prob < (1 - prob):
         return
