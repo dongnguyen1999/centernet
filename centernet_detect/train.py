@@ -64,7 +64,7 @@ def train(model, train_df, valid_df, config: Config, test_df=None, generator=Dat
     
     hist = model.fit(
         train_data,
-        steps_per_epoch = 200,#len(train_data)
+        steps_per_epoch = len(train_data),
         epochs = config.epochs, 
         validation_data=valid_data,
         validation_steps = len(valid_data),
