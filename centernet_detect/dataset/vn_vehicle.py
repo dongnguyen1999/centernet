@@ -189,7 +189,7 @@ class DataGenerator(Sequence):
             # bbox = []
             # for box in bbs_aug:
             #     bbox.append([box.x1, box.y1, box.x2, box.y2, box.label])
-            visualize(bbox, img)
+            # visualize(bbox, img)
 
             img = normalize_image(img)
             im_h, im_w = img.shape[:2]
