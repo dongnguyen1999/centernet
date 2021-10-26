@@ -5,6 +5,7 @@ import os
 from tensorflow.keras.callbacks import CSVLogger
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, ReduceLROnPlateau,LearningRateScheduler
 from crowd_classification.losses import f1, precision, recall
+from focal_loss import BinaryFocalLoss
 
 def train(model, train, valid, test, config: Config):
 
@@ -42,9 +43,9 @@ def train(model, train, valid, test, config: Config):
     reduce_lr = ReduceLROnPlateau(monitor = 'val_loss', factor=0.05, patience=2, min_lr=5e-7, verbose=1)
 
     # compile model
-    opt =  SGD(learning_rate=config.lr, momentum=config.momentum)
-    # opt = Adam(learning_rate=config.lr)
-    model.compile(optimizer=opt, loss='binary_crossentropy')
+    # opt =  SGD(learning_rate=config.lr, momentum=config.momentum)
+    opt = Adam(learning_rate=config.lr)
+    model.compile(optimizer=opt, loss=BinaryFocalLoss(gamma=2))
 
     history = model.fit(
         train, 
