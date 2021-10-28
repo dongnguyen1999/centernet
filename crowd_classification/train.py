@@ -59,8 +59,8 @@ def train(model, train, valid, test, config: Config):
             model_frequently_checkpoint,
             model_bestloss_checkpoint,
             save_best_f1,
-            csv_logger,
-            reduce_lr
+            csv_logger
+            # reduce_lr
         ]
     )
     
