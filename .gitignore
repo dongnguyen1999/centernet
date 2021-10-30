@@ -4,3 +4,4 @@ data/
 *.mp4
 inference/weight/*
 *.avi
+venv/

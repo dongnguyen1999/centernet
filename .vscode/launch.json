@@ -8,7 +8,7 @@
             "name": "Python: Main File",
             "type": "python",
             "request": "launch",
-            "program": "centernet_count.py",
+            "program": "test_background_subtraction.py",
             "console": "integratedTerminal"
         }
     ]
