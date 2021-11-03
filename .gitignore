@@ -5,3 +5,5 @@ data/
 inference/weight/*
 *.avi
 venv/
+*.hdf5
+*.zip

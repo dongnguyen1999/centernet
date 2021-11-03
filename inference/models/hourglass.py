@@ -41,19 +41,14 @@ def normalize_image(image):
   return ((np.float32(image) / 255.) - mean) / std
 
 
-def create_model(config: Config, num_stacks=2):
+def create_model(config: Config, num_stacks=2, heatmap_only=False):
   kwargs = {
     'num_stacks': num_stacks,
     'cnv_dim': 256,
     'weights': 'ctdet_coco',
     'inres': (config.input_size, config.input_size),
   }
-  heads = {
-    'hm': config.num_classes,
-    'reg': 2,
-    'wh': 2
-  }
-
+  heads = {'hm': config.num_classes} if heatmap_only == True else {'hm': config.num_classes, 'reg': 2, 'wh': 2}
   return HourglassNetwork(heads=heads, **kwargs)
 
 

@@ -3,9 +3,9 @@ from __future__ import division
 from __future__ import print_function
 from utils.config import Config
 
-from keras.models import Model
-from keras import backend as K
-from keras.layers import Lambda
+from tensorflow.keras.models import Model
+from tensorflow.keras import backend as K
+from tensorflow.keras.layers import Lambda
 import tensorflow as tf
 import numpy as np
 import cv2

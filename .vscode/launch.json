@@ -8,7 +8,7 @@
             "name": "Python: Main File",
             "type": "python",
             "request": "launch",
-            "program": "test_background_subtraction.py",
+            "program": "inference_main.py",
             "console": "integratedTerminal"
         }
     ]

@@ -18,31 +18,54 @@ def _nms(heat, kernel=3):
   return heat * keep
 
 
-def _count_decode(hm, k=100, output_stride=4):
+def _ctdet_decode(hm, reg, wh, k=100, output_stride=4):
   hm = K.sigmoid(hm)
   hm = _nms(hm)
   hm_shape = K.shape(hm)
+  reg_shape = K.shape(reg)
+  wh_shape = K.shape(wh)
   batch, width, cat = hm_shape[0], hm_shape[2], hm_shape[3]
 
   hm_flat = K.reshape(hm, (batch, -1))
+  reg_flat = K.reshape(reg, (reg_shape[0], -1, reg_shape[-1]))
+  wh_flat = K.reshape(wh, (wh_shape[0], -1, wh_shape[-1]))
 
   def _process_sample(args):
-    _hm = args[0]
+    _hm, _reg, _wh = args
     _scores, _inds = tf.math.top_k(_hm, k=k, sorted=True)
     _classes = K.cast(_inds % cat, 'float32')
     _inds = K.cast(_inds / cat, 'int32')
+    _xs = K.cast(_inds % width, 'float32')
+    _ys = K.cast(K.cast(_inds / width, 'int32'), 'float32')
+    _wh = K.gather(_wh, _inds)
+    _reg = K.gather(_reg, _inds)
 
-    _count = K.stack([_scores, _classes], -1)
-    return _count
+    _ys = _ys + _reg[..., 0]
+    _xs = _xs + _reg[..., 1]
+    
+    _y1 = _ys - _wh[..., 0] / 2
+    _x1 = _xs - _wh[..., 1] / 2
+    
+    _y2 = _ys + _wh[..., 0] / 2
+    _x2 = _xs + _wh[..., 1] / 2
 
-  counts = K.map_fn(_process_sample, [hm_flat], dtype=K.floatx())
-  return counts
+    # rescale to image coordinates
+    _x1 = output_stride * _x1
+    _y1 = output_stride * _y1
+    _x2 = output_stride * _x2
+    _y2 = output_stride * _y2
+
+    _detection = K.stack([_x1, _y1, _x2, _y2, _scores, _classes], -1)
+    return _detection
+
+  detections = K.map_fn(_process_sample, [hm_flat, reg_flat, wh_flat], dtype=K.floatx())
+  return detections
 
 
-def CountDecode(model, k=100,output_stride=4):
+def CtDetDecode(model, k=100,output_stride=4):
   def _decode(args):
-    hm = args[0]
-    return _count_decode(hm, k=k, output_stride=output_stride)
+    hm, reg, wh = args
+    return _ctdet_decode(hm, reg, wh, k=k, output_stride=output_stride)
   output = Lambda(_decode)(model.outputs)
   model = Model(model.input, output)
   return model
@@ -83,3 +106,32 @@ def visualize(box_and_score, img, config: Config, confidence=0.5, le=None, displ
       ax.imshow(img)
 
   return np.array(boxes), np.array(scores)
+
+def _count_decode(hm, k=100, output_stride=4):
+  hm = K.sigmoid(hm)
+  hm = _nms(hm)
+  hm_shape = K.shape(hm)
+  batch, width, cat = hm_shape[0], hm_shape[2], hm_shape[3]
+
+  hm_flat = K.reshape(hm, (batch, -1))
+
+  def _process_sample(args):
+    _hm = args[0]
+    _scores, _inds = tf.math.top_k(_hm, k=k, sorted=True)
+    _classes = K.cast(_inds % cat, 'float32')
+    _inds = K.cast(_inds / cat, 'int32')
+
+    _count = K.stack([_scores, _classes], -1)
+    return _count
+
+  counts = K.map_fn(_process_sample, [hm_flat], dtype=K.floatx())
+  return counts
+
+
+def CountDecode(model, k=100,output_stride=4):
+  def _decode(args):
+    hm = args[0]
+    return _count_decode(hm, k=k, output_stride=output_stride)
+  output = Lambda(_decode)(model.outputs)
+  model = Model(model.input, output)
+  return model
