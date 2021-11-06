@@ -62,7 +62,7 @@ def create_models(crowd_model_config, count_model_config):
     return crowd_model, count_model
 
 class Model:
-    def __init__(self, crowd_model, count_model, frame_diff_estimator, crowd_thresholds=[10, 25], count_thresholds=[0.5, 2.0], classify_conf_threshold=0.5, count_conf_threshold=0.25, heatmap_only=False, debug=False):
+    def __init__(self, crowd_model, count_model, frame_diff_estimator, crowd_thresholds=[10, 25], count_thresholds=[0.5, 2.0], classify_conf_threshold=0, count_conf_threshold=0.25, heatmap_only=False, debug=False):
         self.crowd_model = crowd_model
         self.count_model = count_model
         self.frame_diff_estimator = frame_diff_estimator
