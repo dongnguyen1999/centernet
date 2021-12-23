@@ -3,14 +3,10 @@ from centernet_detect.dataset.vn_vehicle import DataGenerator
 from utils.config import Config
 from tensorflow.keras.losses import binary_crossentropy
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, ReduceLROnPlateau,LearningRateScheduler
-from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 from tensorflow.keras.callbacks import CSVLogger
 from centernet_detect.metrics import SaveBestmAP, TestmAP
 import os
-import numpy as np
 
-#####TRAIN##########
-    
 def train(model, train_df, valid_df, config: Config, test_df=None, generator=DataGenerator):
 
     train_data = generator(train_df, config)

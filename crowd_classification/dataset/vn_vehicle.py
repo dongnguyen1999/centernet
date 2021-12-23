@@ -3,9 +3,6 @@ from utils.config import Config
 from glob import glob
 import os
 import shutil
-from random import seed
-from random import random
-from sklearn.model_selection import train_test_split
 from keras.preprocessing.image import ImageDataGenerator
 import pandas as pd
 

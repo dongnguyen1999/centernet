@@ -1,14 +1,10 @@
-from inference.main import main
-# from inference.model.decode import CtDetDecode, CountDecode
+
 from inference.utils import create_mask, get_masked_img, visualize
 from inference.models.model import Model, create_models
 from inference.models.frame_difference import FrameDiffEstimator
 from utils.config import Config
 import cv2
-from matplotlib import pyplot as plt
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import numpy as np
-import time
 import tensorflow as tf
 # main()
 

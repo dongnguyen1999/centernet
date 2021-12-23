@@ -3,7 +3,6 @@ from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.applications.vgg19 import VGG19
 from tensorflow.keras.applications.inception_v3 import InceptionV3
-# from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras.applications.resnet import ResNet50
 from tensorflow.keras.applications.resnet import ResNet101
 from tensorflow.keras.applications.resnet import ResNet152

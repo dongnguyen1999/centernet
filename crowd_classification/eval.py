@@ -6,12 +6,9 @@ from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 from tensorflow.keras.callbacks import CSVLogger
 from glob import glob
 import os
-# from keras_centernet_cls.metrics import SaveBestmAP, TestmAP
 import os
 import numpy as np
 import pandas as pd
-
-#####TRAIN##########
 
 def eval_models(valid_gen, test_gen, config: Config, model_prefix=None, model_ckpt_paths=[], model_garden={}, confidences=[0.25, 0.5, 0.75], eval_category='every_epoch'):
 

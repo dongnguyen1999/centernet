@@ -152,15 +152,15 @@ def eval_mae(model, model_name, test_df, testset_name, config: Config, confidenc
     runtime = 0
     
     for idx in trange(len(image_ids)):
-        detections = []
-        ground_truths = []
+        # detections = []
+        # ground_truths = []
 
         image_id = image_ids[idx]
         img_name = os.path.basename(image_id)
         img_path = config.valid_path if test_path == None else test_path
         
         img = cv2.imread(os.path.join(img_path, img_name)) # BGR image
-        im_h, im_w = img.shape[:2]
+        # im_h, im_w = img.shape[:2]
 
         img = normalize_image(img)
         img = cv2.resize(img, (config.input_size, config.input_size))
