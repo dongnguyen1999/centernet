@@ -1,41 +1,11 @@
-"""Hourglass Network for Keras.
-# Reference paper
-- [Objects as Points]
-  (https://arxiv.org/pdf/1904.07850.pdf)
-# Reference implementation
-- [PyTorch CenterNet]
-  (https://github.com/xingyizhou/CenterNet/blob/master/src/lib/models/networks/large_hourglass.py)
-- [Keras Stacked_Hourglass_Network_Keras]
-  (https://github.com/yuanyuanli85/Stacked_Hourglass_Network_Keras/blob/master/src/net/hourglass.py)
-"""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
-import os
 from utils.config import Config
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Conv2D, Input, Activation, BatchNormalization, Add, UpSampling2D, ZeroPadding2D, Lambda
-from tensorflow.keras.utils import get_file
 import tensorflow.keras.backend as K
 import numpy as np
-import tensorflow as tf
-
-CTDET_COCO_WEIGHTS_PATH = (
-  'https://github.com/see--/keras-centernet/'
-  'releases/download/0.1.0/ctdet_coco_hg.hdf5')
-
-HPDET_COCO_WEIGHTS_PATH = (
-  'https://github.com/see--/keras-centernet/'
-  'releases/download/0.1.0/hpdet_coco_hg.hdf5')
 
 def normalize_image(image):
-  """Normalize the image for the Hourglass network.
-  # Arguments
-    image: BGR uint8
-  # Returns
-    float32 image with the same shape as the input
-  """
   mean = [0.40789655, 0.44719303, 0.47026116]
   std = [0.2886383, 0.27408165, 0.27809834]
   return ((np.float32(image) / 255.) - mean) / std
@@ -57,30 +27,6 @@ def create_model(config: Config, num_stacks=2):
 
 def HourglassNetwork(heads, num_stacks, cnv_dim=256, inres=(512, 512), weights='ctdet_coco',
                      dims=[256, 384, 384, 384, 512]):
-  """Instantiates the Hourglass architecture.
-  Optionally loads weights pre-trained on COCO.
-  Note that the data format convention used by the model is
-  the one specified in your Keras config at `~/.keras/keras.json`.
-  # Arguments
-      num_stacks: number of hourglass modules.
-      cnv_dim: number of filters after the resolution is decreased.
-      inres: network input shape, should be a multiple of 128.
-      weights: one of `None` (random initialization),
-            'ctdet_coco' (pre-training on COCO for 2D object detection),
-            'hpdet_coco' (pre-training on COCO for human pose detection),
-            or the path to the weights file to be loaded.
-      dims: numbers of channels in the hourglass blocks.
-  # Returns
-      A Keras model instance.
-  # Raises
-      ValueError: in case of invalid argument for `weights`,
-          or invalid input shape.
-  """
-  if not (weights in {'ctdet_coco', 'hpdet_coco', None} or os.path.exists(weights)):
-    raise ValueError('The `weights` argument should be either '
-                     '`None` (random initialization), `ctdet_coco` '
-                     '(pre-trained on COCO), `hpdet_coco` (pre-trained on COCO) '
-                     'or the path to the weights file to be loaded.')
   input_layer = Input(shape=(inres[0], inres[1], 3), name='HGInput')
   inter = pre(input_layer, cnv_dim)
   prev_inter = None
@@ -233,17 +179,3 @@ def create_heads(heads, rf1, hgid):
   return _heads
 
 
-if __name__ == '__main__':
-  kwargs = {
-    'num_stacks': 2,
-    'cnv_dim': 256,
-    'inres': (512, 512),
-  }
-  heads = {
-    'hm': 80,
-    'reg': 2,
-    'wh': 2
-  }
-  model = HourglassNetwork(heads=heads, **kwargs)
-  print(model.summary(line_length=200))
-  # from IPython import embed; embed()

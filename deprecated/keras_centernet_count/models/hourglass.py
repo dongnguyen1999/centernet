@@ -8,9 +8,7 @@
 - [Keras Stacked_Hourglass_Network_Keras]
   (https://github.com/yuanyuanli85/Stacked_Hourglass_Network_Keras/blob/master/src/net/hourglass.py)
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
 
 import os
 from utils.config import Config

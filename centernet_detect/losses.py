@@ -1,7 +1,4 @@
-import tensorflow as tf
 from tensorflow.keras import backend as K
-import numpy as np
-from tensorflow import convert_to_tensor
 from utils.config import Config
 from tensorflow.keras.optimizers import Adam, SGD
 from keras.losses import mean_squared_error
@@ -42,7 +39,7 @@ def compile_model(model, config: Config, loss_weights=[1, 1, 0.1], alpha = 2., b
 
     return heatloss/N
     
-  # opt = Adam(learning_rate=config.lr)
-  opt = SGD(learning_rate=config.lr, momentum=config.momentum)
+  opt = Adam(learning_rate=config.lr)
+  # opt = SGD(learning_rate=config.lr, momentum=config.momentum)
   model.compile(loss=[heatmap_loss, offset_loss, size_loss], optimizer=opt, loss_weights=loss_weights)
   return model

@@ -1,10 +1,8 @@
-from re import I
 from centernet_count.utils import normalize_image
 import os
 from tqdm.std import trange
 from utils.config import Config
 from centernet_count.models.decode import CountDecode
-from typing import List, Union
 from tensorflow.keras.callbacks import Callback
 import numpy as np
 import cv2

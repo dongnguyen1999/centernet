@@ -50,7 +50,7 @@ class FrameDiffEstimator:
 
         mask = self.short_subtractor.apply(frame)
 
-        source_img[mask > 0] = (255, 0, 0)
+        source_img[mask > 0] = (0, 255, 0)
 
         if self.debug == True: cv2.imshow("frame_subtraction", source_img)
 
@@ -73,7 +73,7 @@ class FrameDiffEstimator:
         (contours, _) = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         if self.debug == True:
-            cv2.drawContours(image=source_img, contours=contours, contourIdx=-1, color=(0, 255, 255), thickness=-1,
+            cv2.drawContours(image=source_img, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=-1,
                              lineType=cv2.LINE_AA)
             cv2.imshow("foreground_detection", source_img)
 

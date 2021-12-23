@@ -1,6 +1,4 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
 from utils.config import Config
 
 from keras.models import Model
@@ -33,6 +31,7 @@ def _ctdet_decode(hm, k=100):
     # _inds = K.cast(_inds / cat, 'int32')
     # _xs = K.cast(_inds % width, 'float32')
     # _ys = K.cast(K.cast(_inds / width, 'int32'), 'float32')
+
     _detection = K.stack([_scores, _classes], -1)
     return _detection
 

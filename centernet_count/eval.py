@@ -2,14 +2,9 @@ from utils.map_utils.calc_map import calc_map, read_map_output
 from centernet_count.utils import normalize_image
 import cv2
 from tqdm.std import trange
-from centernet_count.losses import compile_model
-from centernet_count.dataset.vn_vehicle import DataGenerator
 from utils.config import Config
 import pandas as pd
 from tensorflow.keras.losses import binary_crossentropy
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, ReduceLROnPlateau,LearningRateScheduler
-from tensorflow.keras.optimizers import Adam, RMSprop, SGD
-from tensorflow.keras.callbacks import CSVLogger
 from centernet_count.models.decode import CountDecode
 # from centernet_count.metrics import SaveBestmAP, TestmAP
 import os

@@ -1,7 +1,4 @@
-import tensorflow as tf
 from tensorflow.keras import backend as K
-import numpy as np
-from tensorflow import convert_to_tensor
 from utils.config import Config
 from tensorflow.keras.optimizers import Adam
 from keras.losses import mean_squared_error

@@ -3,23 +3,14 @@ from centernet_detect.utils import normalize_image
 import cv2
 from tqdm.std import trange
 from centernet_detect.models.decode import CtDetDecode
-from centernet_detect.losses import compile_model
-from centernet_detect.dataset.vn_vehicle import DataGenerator
 from utils.config import Config
 import pandas as pd
-from tensorflow.keras.losses import binary_crossentropy
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, ReduceLROnPlateau,LearningRateScheduler
-from tensorflow.keras.optimizers import Adam, RMSprop, SGD
-from tensorflow.keras.callbacks import CSVLogger
-from centernet_detect.metrics import SaveBestmAP, TestmAP
 import os
 import numpy as np
 from glob import glob
 import shutil
 from datetime import datetime
 import time
-
-#####TRAIN##########
 
 def eval_models(valid_df, test_df, config: Config, model_prefix=None, eval_category='every_epoch', model_ckpt_paths=[], model_garden={}, confidence=0, threshold=0.5, metric='map'):
     eval_result = []

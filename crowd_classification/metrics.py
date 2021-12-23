@@ -1,15 +1,12 @@
-from re import I
+
 import os
 from tqdm.std import trange
 from utils.config import Config
-from typing import List, Union
 from tensorflow.keras.callbacks import Callback
-import numpy as np
-import cv2
 import pandas as pd
 import time
 
-def calcScore(model, valid, config,  confidence=0.5, path=None, debug=False):
+def calcScore(model, valid, confidence=0.5):
   
   tp, tn, fp, fn = 0, 0, 0, 0
   pred_time = 0
@@ -63,7 +60,7 @@ class SaveBestScore(Callback):
     self.best_epoch = 0
 
   def on_epoch_end(self, epoch, logs=None):
-    accuracy, prediction, recall, f1, _ = calcScore(self.model, self.generator, self.config, confidence=self.confidence)
+    accuracy, prediction, recall, f1, _ = calcScore(self.model, self.generator, confidence=self.confidence)
     print('Valid current: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (accuracy, prediction, recall, f1))
     if f1 > self.best:
       self.best = f1
@@ -94,7 +91,7 @@ class TestScore(Callback):
       test_id = test_index + 1
       print(f'Evalutate test{test_id}')
       test_df = self.test_df[self.test_df['test_id'] == test_id]
-      accuracy, prediction, recall, f1, _ = calcScore(self.model, test_df, self.le, self.crowd_threshold, self.config, confidence=self.confidence, path=test_path)
+      accuracy, prediction, recall, f1, _ = calcScore(self.model, test_df, confidence=self.confidence)
       print('test%d: acc %.4f, prec %.4f, rec %.4f, f1 %.4f' % (test_id, accuracy, prediction, recall, f1))
       r = [f'test{test_id}', accuracy, prediction, recall, f1]
       rdf.append(r)
